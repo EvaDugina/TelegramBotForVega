@@ -282,8 +282,13 @@ def sendNotif(s):
             chat_id = row[2]
             try:
                 #db.close()
-                bot.send_message(chat_id,
-                                 strings.MESSAGE_SEND_NOTIFICATION_first + s + strings.MESSAGE_SEND_NOTIFICATION_second)
+                if s == '':
+                    bot.send_message(chat_id,
+                                     strings.MESSAGE_SEND_NOTIFICATION_first + strings.MESSAGE_SEND_NOTIFICATION_second)
+                    main.STRING_RETURN += f'{chat_id} уведомление отправлено\n'
+                else:
+                    bot.send_message(chat_id,
+                                 strings.MESSAGE_SEND_NOTIFICATION_first + s + "\n" + strings.MESSAGE_SEND_NOTIFICATION_second)
             except:
                 #db.close()
                 main.loggerDEBUG.warning(f'----- в chat_id: {chat_id} уведомление отправлено не было')

@@ -4,7 +4,7 @@ SEARCH_ALL_TIME_TABLE = 'Вывод полного расписания'
 SEARCH_BY_B209 = 'Когда свободна Б-209?'
 
 ENTER_GROUP = '\n'.join(["Введите номер группы.",
-                         "(Пример:",
+                         "ПРИМЕР:",
                          "кмбо-02-10", "кмбо 02 10", "кмбо0210"])
 ENTER_TEACHER = "Введите фамилию преподавателя.\n(Пример: головин)"
 ENTER_DATE = '\n'.join(["Введите дату в формате примера или воспользуйтесь ключами:",
@@ -19,7 +19,7 @@ MESSAGE_ERROR_GROUP = "Такой группы не существует."
 MESSAGE_ERROR_TEACHER = "Такой преподаватель у нас не работает("
 MESSAGE_ERROR_ALL_TIME_TABLE = "Выберите снова."
 MESSAGE_SEND_NOTIFICATION_first = "Расписание на БК-536 изменилось!\n"
-MESSAGE_SEND_NOTIFICATION_second = '\n'.join(['\nПроверьте его здесь или на официальном сайте:',
+MESSAGE_SEND_NOTIFICATION_second = '\n'.join(['Проверьте его здесь или на официальном сайте:',
                                   'http://www.vega.fcyb.mirea.ru/'])
 
 INSTROUCTIONS_HELP = '\n'.join(["help - дерево параметров поиска",

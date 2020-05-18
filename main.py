@@ -5,6 +5,8 @@ import keyboard as kb
 import inlineRealization as iRz
 import workWithDataBase as wDB
 
+from flask import Flask
+import threading
 import telebot
 from telebot.types import Message
 import logging
@@ -13,6 +15,8 @@ import logging
 # TOKEN = os.environ.get('TELEGRAM_BOT_FOR_VEGA_TOKEN')
 TOKEN = config.token
 LOG_FORMAT = '%(funcName)s :: %(message)s'
+STRING_SERVER = f'{config.Host}:{config.Port}/{config.NotificationMethod}'
+STRING_RETURN = ''
 
 bot = telebot.TeleBot(TOKEN)
 loggerDEBUG = logging.getLogger('logger_debug')
@@ -25,6 +29,16 @@ logging.getLogger('requests').setLevel('ERROR')
 
 dataBase = wDB.FileDBWork("USERS_DATA_BASE.db", "ADMINS_DATA_BASE.db")
 logging.basicConfig(level='DEBUG', filename='log.txt', format=LOG_FORMAT)
+
+
+app = Flask(__name__)
+
+
+@app.route(config.NotificationMethod, methods=['POST', 'GET'])
+def listen_update():
+    fnc.sendNotif('')
+    loggerDEBUG.debug(f'/setnew from SERVER')
+    return STRING_RETURN
 
 
 @bot.message_handler(commands=['start'])
@@ -77,4 +91,5 @@ def query_text(query):
 
 
 if __name__ == '__main__':
+    threading.Thread(target=app.run, args=(config.Host, config.Port)).start()
     bot.polling(none_stop=True)
