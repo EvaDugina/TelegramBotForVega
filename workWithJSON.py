@@ -37,8 +37,10 @@ class FileProvider(AbstractProvider):
 
     def search_subject(self, teacher):  # -Работает
         for pattern in self.data['patterns']:
-            if 'pr' in pattern and not pattern['pr'] == '' and not pattern['pr'].upper().find(teacher.upper()) == -1:
-                return pattern['search']
+            if 'pr' in pattern and not pattern['pr'] == '':
+                arrayTeacher = pattern['pr'].upper().split(' ')
+                if arrayTeacher[0] == teacher.upper():
+                    return pattern['search']
         return 'ERROR'
 
 
@@ -89,7 +91,7 @@ class JsonFormatter:
         for day in jsonGroup:
             if day['day'] == dayWeek:
                 return self.outputFormat(day)
-        return 'Занятия отсутсвуют.'
+        return f'{dayWeek}:\nЗанятия отсутсвуют.'
 
     def search_by_group(self, group):  # -Работает
         arrayDays = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС']
@@ -131,7 +133,7 @@ class JsonFormatter:
             timeTable += f'{strTimeTable[i]} \n' if lesson else ''
 
         if timeTable == dayWeek + ':\n':
-            return 'Занятия отсутствуют.'
+            return f'{dayWeek}:\nЗанятия отсутсвуют.'
         else:
             return timeTable
 
@@ -203,7 +205,7 @@ class JsonFormatter:
                 if count == 0:
                     timeTable += 'полностью свободна\n'
                 elif count == 1:
-                    timeTable += 'свободна на половину\n'
+                    timeTable += 'свободна наполовину\n'
                 else:
                     timeTable += 'занята\n'
             timeTable += '\n'

@@ -14,7 +14,7 @@ import logging
 
 # TOKEN = os.environ.get('TELEGRAM_BOT_FOR_VEGA_TOKEN')
 TOKEN = config.token
-LOG_FORMAT = '%(funcName)s :: %(message)s'
+LOG_FORMAT = '%(asctime)s :: %(funcName)s :: %(message)s'
 STRING_SERVER = f'{config.Host}:{config.Port}/{config.NotificationMethod}'
 STRING_RETURN = ''
 
@@ -43,12 +43,19 @@ def listen_update():
 
 @bot.message_handler(commands=['start'])
 def process_start_command(message: Message):
-    bot.send_message(message.from_user.id,
-                     '\n'.join([f'Привет, {message.from_user.username}!',
-                                'Выберите:']),
-                     reply_markup=kb.choiceMarkup)
+    bot.send_message(message.from_user.id, strings.MESSAGE_START, reply_markup=kb.choiceMarkup)
     dataBase.add_user(user_id=message.from_user.id, chat_id=message.chat.id)
-    loggerDEBUG.debug(f'/start {message.from_user.username} - {message.from_user.id}')
+    row = dataBase.get_row_by_id(message.from_user.id)
+    listRow = fnc.row_to_list(row)
+    listRow[3] = -1
+    listRow[4] = 0
+    listRow[5] = ''
+    listRow[6] = ''
+    dataBase.edit_row(listRow[0], listRow)
+    if message.from_user.username is None:
+        loggerDEBUG.debug(f'/start None - {message.from_user.id}')
+    else:
+        loggerDEBUG.debug(f'/start {message.from_user.username} - {message.from_user.id}')
 
 
 @bot.message_handler(commands=['setnew'])
@@ -60,9 +67,18 @@ def time_table_changed(message: Message):
             for i in range(1, len(s)):
                 option += s[i] + ' '
         fnc.sendNotif(option)
-        loggerDEBUG.debug(f'/setnew {message.from_user.username} - {message.from_user.id} - {option}')
+        if message.from_user.username is None:
+            loggerDEBUG.debug(f'/setnew None - {message.from_user.id} - {option}')
+        else:
+            loggerDEBUG.debug(f'/setnew {message.from_user.username} - {message.from_user.id} - {option}')
     else:
-        loggerDEBUG.warning('\n'.join([f'/setnew ----- ВНИМАНИЕ!!! ',
+        if message.from_user.username is None:
+            loggerDEBUG.warning('\n'.join([f'/setnew ----- ВНИМАНИЕ!!! ',
+                                           f'пользователь, НЕ ЯВЛЯЮЩИЙСЯ АДМИНОМ использовал /setnew',
+                                           f'chat_id: {message.from_user.id}',
+                                           f'username: None']))
+        else:
+            loggerDEBUG.warning('\n'.join([f'/setnew ----- ВНИМАНИЕ!!! ',
                                        f'пользователь, НЕ ЯВЛЯЮЩИЙСЯ АДМИНОМ использовал /setnew',
                                        f'chat_id: {message.from_user.id}',
                                        f'username: {message.from_user.username}']))
@@ -72,7 +88,10 @@ def time_table_changed(message: Message):
 def send_list_of_commands(message: Message):
     dataBase.add_user(user_id=message.from_user.id, chat_id=message.chat.id)
     bot.send_message(message.chat.id, strings.INSTROUCTIONS_HELP)
-    loggerDEBUG.debug(f'/help {message.from_user.username} - {message.from_user.id}')
+    if message.from_user.username is None:
+        loggerDEBUG.debug(f'/help None - {message.from_user.id}')
+    else:
+        loggerDEBUG.debug(f'/help {message.from_user.username} - {message.from_user.id}')
 
 
 @bot.message_handler(content_types=['text'])
@@ -80,7 +99,10 @@ def repeat_message(message: Message):
     loggerDEBUG.debug(f'/text {message.from_user.username}')
     dataBase.add_user(user_id=message.from_user.id, chat_id=message.chat.id)
     fnc.general_func(message)
-    loggerDEBUG.debug(f'/help {message.from_user.username} - {message.from_user.id} - "{message.text}"')
+    if message.from_user.username is None:
+        loggerDEBUG.debug(f'/text None - {message.from_user.id} - "{message.text}"')
+    else:
+        loggerDEBUG.debug(f'/text {message.from_user.username} - {message.from_user.id} - "{message.text}"')
 
 
 @bot.inline_handler(func=lambda query: len(query.query) > 0)

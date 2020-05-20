@@ -27,21 +27,36 @@ def general_func(message: Message):
     # Работа с выводом информации--------------
     if way == 0:
         if countParam == 0:
-            stringOut = group_zero_parameters(message)
-            if not stringOut == '':
+            stringOut = group_zero_parameters(message.chat.id, message.text)
+            if stringOut == strings.MESSAGE_ERROR_GROUP or stringOut == strings.MESSAGE_ERROR_DATE:
+                row = dataBase.get_row_by_id(message.from_user.id)
+                listRow = row_to_list(row)
                 bot.send_message(message.chat.id, stringOut)
-        elif countParam == 1:
-            stringOut = group_one_parameter(message)
-            bot.send_message(message.chat.id, stringOut)
+                if listRow[5] != '':
+                    bot.send_message(message.chat.id, f'\nТЕКУЩАЯ ГРУППА: {listRow[5]}')
+            elif not stringOut == '':
+                row = dataBase.get_row_by_id(message.from_user.id)
+                listRow = row_to_list(row)
+                bot.send_message(message.chat.id, stringOut)
+                if listRow[5] != '':
+                    bot.send_message(message.chat.id, strings.MESSAGE_ONLY_DATE_GROUP + f'\nТЕКУЩАЯ ГРУППА: {listRow[5]}')
 
     elif way == 1:
         if countParam == 0:
-            stringOut = teacher_zero_parameters(message)
-            if not stringOut == '':
+            stringOut = teacher_zero_parameters(message.chat.id, message.text)
+            if stringOut == strings.MESSAGE_ERROR_TEACHER or stringOut == strings.MESSAGE_ERROR_DATE:
+                row = dataBase.get_row_by_id(message.from_user.id)
+                listRow = row_to_list(row)
                 bot.send_message(message.chat.id, stringOut)
-        elif countParam == 1:
-            stringOut = teacher_one_parameter(message)
-            bot.send_message(message.chat.id, stringOut)
+                if listRow[6] != '':
+                    bot.send_message(message.chat.id, f'\nТЕКУЩИЙ ПРЕПОДАВАТЕЛЬ: {listRow[6]}')
+            elif not stringOut == '':
+                row = dataBase.get_row_by_id(message.from_user.id)
+                listRow = row_to_list(row)
+                bot.send_message(message.chat.id, stringOut)
+                if listRow[6] != '':
+                    bot.send_message(message.chat.id,
+                                     strings.MESSAGE_ONLY_DATE_TEACHER + f'\nТЕКУЩИЙ ПРЕПОДАВАТЕЛЬ: {listRow[6]}')
 
     elif way == 2:
         if countParam == 0:
@@ -54,8 +69,7 @@ def general_func(message: Message):
             if not catch:
                 strOut = all_time_table_one_parameters(message)
                 if message.text == 'выйти':
-                    bot.send_message(message.chat.id,
-                                     message.from_user.username + ' выберите:',
+                    bot.send_message(message.chat.id, 'Выберите:',
                                      reply_markup=kb.choiceMarkup)
                 else:
                     ln = len(strOut)
@@ -126,81 +140,156 @@ def choose_way_four(listRow):
     dataBase.edit_row(listRow[0], listRow)
 
 
-def group_zero_parameters(message: Message):
+def group_zero_parameters(chat_id, text):
     main.loggerDEBUG.debug('поиск по группе (0)')
-    row = dataBase.get_row_by_id(message.from_user.id)
+    row = dataBase.get_row_by_id(chat_id)
     listRow = row_to_list(row)
-
-    gr = jsonFormatter.search_group(message.text)
-    if not gr == 'ERROR':
-        listRow[5] = message.text.upper()
-        listRow[4] += 1
-        dataBase.edit_row(listRow[0], listRow)
-        return strings.ENTER_DATE
-    elif not message.text == strings.SEARCH_BY_GROUP:
-        return strings.MESSAGE_ERROR_GROUP
+    arrayGroupDate = text.split(' ')
+    if len(arrayGroupDate) == 1 or len(arrayGroupDate) == 3:
+        gr = jsonFormatter.search_group(text)
+        date = group_one_parameter(chat_id, text)
+        if not gr == 'ERROR':
+            listRow[5] = text.upper()
+            dataBase.edit_row(listRow[0], listRow)
+            return group_one_parameter(chat_id, '1')
+        elif date != strings.MESSAGE_ERROR_DATE:
+            return date
+        elif not text == strings.SEARCH_BY_GROUP:
+            return strings.MESSAGE_ERROR_GROUP
+        else:
+            return ''
+    elif len(arrayGroupDate) == 2:
+        if group_zero_parameters(chat_id, arrayGroupDate[0]) != strings.MESSAGE_ERROR_GROUP and \
+                group_zero_parameters(chat_id, arrayGroupDate[0]) != '':
+            return group_one_parameter(chat_id, arrayGroupDate[1])
+        else:
+            bot.send_message(chat_id, strings.MESSAGE_ERROR_GROUP)
+            return ''
+    elif len(arrayGroupDate) == 4:
+        if group_zero_parameters(chat_id, arrayGroupDate[0]) != strings.MESSAGE_ERROR_GROUP and \
+                group_zero_parameters(chat_id, arrayGroupDate[0]) != '':
+            strDate = '.'.join([arrayGroupDate[1], arrayGroupDate[2], arrayGroupDate[3]])
+            strOut = group_one_parameter(chat_id, strDate)
+            if strOut == strings.MESSAGE_ERROR_DATE:
+                bot.send_message(chat_id, strings.MESSAGE_ERROR_DATE)
+                return ''
+            else:
+                return strOut
+        elif group_zero_parameters(chat_id, arrayGroupDate[0] + arrayGroupDate[1] + arrayGroupDate[2]) != strings.MESSAGE_ERROR_GROUP and \
+                group_zero_parameters(chat_id, arrayGroupDate[0] + arrayGroupDate[1] + arrayGroupDate[2]) != '':
+            strGroup = arrayGroupDate[0] + arrayGroupDate[1] + arrayGroupDate[2]
+            strOut = group_zero_parameters(chat_id, strGroup)
+            if strOut == strings.MESSAGE_ERROR_GROUP or strOut == '':
+                bot.send_message(chat_id, strings.MESSAGE_ERROR_GROUP)
+                return ''
+            else:
+                return group_one_parameter(chat_id, arrayGroupDate[3])
+        else:
+            bot.send_message(chat_id, 'Некорректный ввод.\nПовторите снова.')
+            return ''
+    elif len(arrayGroupDate) == 6:
+        strGroupCheck = arrayGroupDate[0] + arrayGroupDate[1] + arrayGroupDate[2]
+        strDate = '.'.join([arrayGroupDate[3], arrayGroupDate[4], arrayGroupDate[5]])
+        if group_zero_parameters(chat_id, strGroupCheck) != strings.MESSAGE_ERROR_GROUP and \
+                group_zero_parameters(chat_id, strGroupCheck) != '' \
+                and group_one_parameter(chat_id, strDate) != strings.MESSAGE_ERROR_DATE:
+            return group_one_parameter(chat_id, strDate)
+        else:
+            bot.send_message(chat_id, 'Некорректный ввод.\nПовторите снова.')
+            return ''
     else:
         return ''
 
 
-def group_one_parameter(message: Message):
+def group_one_parameter(chat_id, text):
     main.loggerDEBUG.debug('поиск по группе (1)')
-    row = dataBase.get_row_by_id(message.from_user.id)
+    row = dataBase.get_row_by_id(chat_id)
     listRow = row_to_list(row)
-    if message.text == '1':
+    if text == '1':
         date = datetime.datetime.today()
         group = jsonFormatter.search_by_group_and_date(listRow[5], jsonFormatter.week_to_string(date.weekday()))
         return group
-    elif message.text == '7':
+    elif text == '7':
         group = jsonFormatter.search_by_group(listRow[5])
         return group
-    else:
-        try:
-            arrayData = data_to_array(message.text)
-            date = datetime.datetime(int(arrayData[2]), int(arrayData[1]), int(arrayData[0]))
-            group = jsonFormatter.search_by_group_and_date(listRow[5], jsonFormatter.week_to_string(date.weekday()))
-            return group
-        except:
-            return 'Некорректный ввод даты.\n' \
-                   'Повторите снова.'
-
-
-def teacher_zero_parameters(message: Message):
-    main.loggerDEBUG.debug('поиск по преподавателю (0)')
-    row = dataBase.get_row_by_id(message.from_user.id)
-    listRow = row_to_list(row)
-    tch = jsonFormatter.search_subject(message.text)
-    if not tch == 'ERROR':
-        listRow[6] = message.text.upper()
-        listRow[4] += 1
+    try:
+        arrayData = data_to_array(text)
+        date = datetime.datetime(int(arrayData[2]), int(arrayData[1]), int(arrayData[0]))
+        group = jsonFormatter.search_by_group_and_date(listRow[5], jsonFormatter.week_to_string(date.weekday()))
         dataBase.edit_row(listRow[0], listRow)
-        return strings.ENTER_DATE
-    elif not message.text == strings.SEARCH_BY_TEACHER:
-        return strings.MESSAGE_ERROR_TEACHER
+        return group
+    except:
+        dataBase.edit_row(listRow[0], listRow)
+        return strings.MESSAGE_ERROR_DATE
+
+
+def teacher_zero_parameters(chat_id, text):
+    main.loggerDEBUG.debug('поиск по преподавателю (0)')
+    row = dataBase.get_row_by_id(chat_id)
+    listRow = row_to_list(row)
+    arrayTeacherDate = text.split(' ')
+    if len(arrayTeacherDate) == 1:
+        tch = jsonFormatter.search_subject(text)
+        date = teacher_one_parameter(chat_id, text)
+        if not tch == 'ERROR':
+            listRow[6] = text.upper()
+            dataBase.edit_row(listRow[0], listRow)
+            return teacher_one_parameter(chat_id, '1')
+        elif date != strings.MESSAGE_ERROR_DATE:
+            return date
+        elif not text == strings.SEARCH_BY_TEACHER:
+            return strings.MESSAGE_ERROR_TEACHER
+        else:
+            return ''
+    elif len(arrayTeacherDate) == 3:
+        date = teacher_one_parameter(chat_id, text)
+        if date != strings.MESSAGE_ERROR_DATE:
+            return date
+        else:
+            return ''
+    elif len(arrayTeacherDate) == 2:
+        if teacher_zero_parameters(chat_id, arrayTeacherDate[0]) != strings.MESSAGE_ERROR_TEACHER and \
+                teacher_zero_parameters(chat_id, arrayTeacherDate[0]) != '':
+            return teacher_one_parameter(chat_id, arrayTeacherDate[1])
+        else:
+            bot.send_message(chat_id, strings.MESSAGE_ERROR_TEACHER)
+            return ''
+    elif len(arrayTeacherDate) == 4:
+        if teacher_zero_parameters(chat_id, arrayTeacherDate[0]) != strings.MESSAGE_ERROR_TEACHER and \
+                teacher_zero_parameters(chat_id, arrayTeacherDate[0]) != '':
+            strDate = '.'.join([arrayTeacherDate[1], arrayTeacherDate[2], arrayTeacherDate[3]])
+            strOut = teacher_one_parameter(chat_id, strDate)
+            if strOut == strings.MESSAGE_ERROR_DATE:
+                bot.send_message(chat_id, strings.MESSAGE_ERROR_DATE)
+                return ''
+            else:
+                return strOut
+        else:
+            bot.send_message(chat_id, 'Некорректный ввод.\nПовторите снова.')
+            return ''
     else:
         return ''
 
 
-def teacher_one_parameter(message: Message):
+def teacher_one_parameter(chat_id, text):
     main.loggerDEBUG.debug('поиск по преподавателю (1)')
-    row = dataBase.get_row_by_id(message.from_user.id)
+    row = dataBase.get_row_by_id(chat_id)
     listRow = row_to_list(row)
-    if message.text == '1':
+    if text == '1':
         date = datetime.datetime.today()
         teacher = jsonFormatter.search_by_teacher_and_date(listRow[6], jsonFormatter.week_to_string(date.weekday()))
         return teacher
-    elif message.text == '7':
+    elif text == '7':
         teacher = jsonFormatter.search_by_teacher(listRow[6])
         return teacher
     else:
         try:
-            arrayData = data_to_array(message.text)
+            arrayData = data_to_array(text)
             date = datetime.datetime(int(arrayData[2]), int(arrayData[1]), int(arrayData[0]))
             teacher = jsonFormatter.search_by_teacher_and_date(listRow[6], jsonFormatter.week_to_string(date.weekday()))
             return teacher
         except:
-            return 'Некорректный ввод даты.\n' \
-                   'Повторите снова.'
+            return strings.MESSAGE_ERROR_DATE
 
 
 def all_time_table_one_parameters(message: Message):
@@ -281,16 +370,16 @@ def sendNotif(s):
 
             chat_id = row[2]
             try:
-                #db.close()
+                # db.close()
                 if s == '':
                     bot.send_message(chat_id,
                                      strings.MESSAGE_SEND_NOTIFICATION_first + strings.MESSAGE_SEND_NOTIFICATION_second)
                     main.STRING_RETURN += f'{chat_id} уведомление отправлено\n'
                 else:
                     bot.send_message(chat_id,
-                                 strings.MESSAGE_SEND_NOTIFICATION_first + s + "\n" + strings.MESSAGE_SEND_NOTIFICATION_second)
+                                     strings.MESSAGE_SEND_NOTIFICATION_first + s + "\n" + strings.MESSAGE_SEND_NOTIFICATION_second)
             except:
-                #db.close()
+                # db.close()
                 main.loggerDEBUG.warning(f'----- в chat_id: {chat_id} уведомление отправлено не было')
 
 
@@ -305,9 +394,9 @@ def isAdmin(id):
 
         user_id = row[1]
         if int(user_id) == int(id):
-            #db.close()
+            # db.close()
             return True
-    #db.close()
+    # db.close()
     return False
 
 
