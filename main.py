@@ -10,6 +10,7 @@ import threading
 import telebot
 from telebot.types import Message
 import logging
+import datetime
 
 
 # TOKEN = os.environ.get('TELEGRAM_BOT_FOR_VEGA_TOKEN')
@@ -43,7 +44,6 @@ def listen_update():
 
 @bot.message_handler(commands=['start'])
 def process_start_command(message: Message):
-    bot.send_message(message.from_user.id, strings.MESSAGE_START, reply_markup=kb.choiceMarkup)
     dataBase.add_user(user_id=message.from_user.id, chat_id=message.chat.id)
     row = dataBase.get_row_by_id(message.from_user.id)
     listRow = fnc.row_to_list(row)
@@ -52,6 +52,7 @@ def process_start_command(message: Message):
     listRow[5] = ''
     listRow[6] = ''
     dataBase.edit_row(listRow[0], listRow)
+    bot.send_message(message.from_user.id, strings.MESSAGE_START, reply_markup=kb.determine_start_keyboard(listRow[5]))
     if message.from_user.username is None:
         loggerDEBUG.debug(f'/start None - {message.from_user.id}')
     else:
@@ -94,11 +95,65 @@ def send_list_of_commands(message: Message):
         loggerDEBUG.debug(f'/help {message.from_user.username} - {message.from_user.id}')
 
 
+@bot.message_handler(regexp=strings.SEARCH_BY_GROUP)
+def choose_way_search_by_group(message: Message):
+    row = dataBase.get_row_by_id(message.from_user.id)
+    listRow = fnc.row_to_list(row)
+    loggerDEBUG.debug('поиск по группе')
+    listRow[3] = 0
+    listRow[4] = 0
+    dataBase.edit_row(listRow[0], listRow)
+    bot.send_message(message.chat.id, strings.ENTER_GROUP)
+
+
+@bot.message_handler(regexp=strings.SEARCH_BY_TEACHER)
+def choose_way_search_by_teacher(message: Message):
+    row = dataBase.get_row_by_id(message.from_user.id)
+    listRow = fnc.row_to_list(row)
+    loggerDEBUG.debug('поиск по преподавателю')
+    listRow[3] = 1
+    listRow[4] = 0
+    dataBase.edit_row(listRow[0], listRow)
+    bot.send_message(message.chat.id, strings.ENTER_TEACHER)
+
+
+@bot.message_handler(regexp=strings.SEARCH_ALL_TIME_TABLE)
+def choose_way_all_time_table(message: Message):
+    row = dataBase.get_row_by_id(message.from_user.id)
+    listRow = fnc.row_to_list(row)
+    loggerDEBUG.debug('вывод всего расписания')
+    listRow[3] = 2
+    listRow[4] = 0
+    dataBase.edit_row(listRow[0], listRow)
+    fnc.general_func(message)
+
+
+@bot.message_handler(regexp=strings.SEARCH_BY_B209)
+def choose_way_by_b209(message: Message):
+    row = dataBase.get_row_by_id(message.from_user.id)
+    listRow = fnc.row_to_list(row)
+    loggerDEBUG.debug('когда свободна Б209?')
+    listRow[3] = 3
+    listRow[4] = 0
+    dataBase.edit_row(listRow[0], listRow)
+    fnc.general_func(message)
+
+
 @bot.message_handler(content_types=['text'])
 def repeat_message(message: Message):
     loggerDEBUG.debug(f'/text {message.from_user.username}')
     dataBase.add_user(user_id=message.from_user.id, chat_id=message.chat.id)
-    fnc.general_func(message)
+    regExp = fnc.text_reg_exp(message.from_user.id)
+
+    if regExp != 'ERROR' and message.text == regExp:
+        bot.send_message(message.chat.id, fnc.group_one_parameter(message.chat.id, '1'))
+        row = dataBase.get_row_by_id(message.from_user.id)
+        listRow = fnc.row_to_list(row)
+        listRow[3] = -1
+        dataBase.edit_row(listRow[0], listRow)
+    else:
+        fnc.general_func(message)
+
     if message.from_user.username is None:
         loggerDEBUG.debug(f'/text None - {message.from_user.id} - "{message.text}"')
     else:

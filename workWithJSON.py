@@ -70,6 +70,7 @@ class JsonFormatter:
 
     @staticmethod
     def text_to_group(text):
+        text.upper()
         if len(text) == 10:
             gr = text[:4] + "-" + text[5:7] + "-" + text[8:]
         elif len(text) == 8:

@@ -1,4 +1,5 @@
 import strings
+
 import telebot
 import datetime
 
@@ -12,11 +13,16 @@ def determine_the_year():
     return number
 
 
-choiceMarkup = telebot.types.ReplyKeyboardMarkup(1)
-choiceMarkup.row(strings.SEARCH_BY_GROUP)
-choiceMarkup.row(strings.SEARCH_BY_TEACHER)
-choiceMarkup.row(strings.SEARCH_ALL_TIME_TABLE)
-choiceMarkup.row(strings.SEARCH_BY_B209)
+def determine_start_keyboard(strGroup):
+    choiceMarkup = telebot.types.ReplyKeyboardMarkup(1)
+    if strGroup != '':
+        choiceMarkup.row(f'{strings.SEARCH_BY_GROUP_FOR_TODAY_1}"{strGroup}"{strings.SEARCH_BY_GROUP_FOR_TODAY_2}')
+    choiceMarkup.row(strings.SEARCH_BY_GROUP)
+    choiceMarkup.row(strings.SEARCH_BY_TEACHER)
+    choiceMarkup.row(strings.SEARCH_ALL_TIME_TABLE)
+    choiceMarkup.row(strings.SEARCH_BY_B209)
+    return choiceMarkup
+
 
 choiceCourse = telebot.types.ReplyKeyboardMarkup(1)
 number = determine_the_year()
