@@ -96,31 +96,36 @@ def send_list_of_commands(message: Message):
 
 @bot.message_handler(regexp=strings.SEARCH_BY_GROUP)
 def choose_way_search_by_group(message: Message):
+    loggerDEBUG.debug(f'поиск по группе {message.from_user.username} :: start')
+    dataBase.add_user(user_id=message.from_user.id, chat_id=message.chat.id)
     row = dataBase.get_row_by_id(message.from_user.id)
     listRow = fnc.row_to_list(row)
-    loggerDEBUG.debug('поиск по группе')
     listRow[3] = 0
     listRow[4] = 0
     dataBase.edit_row(listRow[0], listRow)
     bot.send_message(message.chat.id, strings.ENTER_GROUP)
+    loggerDEBUG.debug(f'поиск по группе {message.from_user.username} :: end')
 
 
 @bot.message_handler(regexp=strings.SEARCH_BY_TEACHER)
 def choose_way_search_by_teacher(message: Message):
+    loggerDEBUG.debug(f'поиск по преподавателю {message.from_user.username} :: start')
+    dataBase.add_user(user_id=message.from_user.id, chat_id=message.chat.id)
     row = dataBase.get_row_by_id(message.from_user.id)
     listRow = fnc.row_to_list(row)
-    loggerDEBUG.debug('поиск по преподавателю')
     listRow[3] = 1
     listRow[4] = 0
     dataBase.edit_row(listRow[0], listRow)
     bot.send_message(message.chat.id, strings.ENTER_TEACHER)
+    loggerDEBUG.debug(f'поиск по группе {message.from_user.username} :: end')
 
 
 @bot.message_handler(regexp=strings.SEARCH_ALL_TIME_TABLE)
 def choose_way_all_time_table(message: Message):
+    loggerDEBUG.debug(f'вывод всего расписания {message.from_user.username}')
+    dataBase.add_user(user_id=message.from_user.id, chat_id=message.chat.id)
     row = dataBase.get_row_by_id(message.from_user.id)
     listRow = fnc.row_to_list(row)
-    loggerDEBUG.debug('вывод всего расписания')
     listRow[3] = 2
     listRow[4] = 0
     dataBase.edit_row(listRow[0], listRow)
@@ -129,18 +134,20 @@ def choose_way_all_time_table(message: Message):
 
 @bot.message_handler(regexp=strings.SEARCH_BY_B209)
 def choose_way_by_b209(message: Message):
+    loggerDEBUG.debug(f'когда свободна Б209? {message.from_user.username} :: start')
+    dataBase.add_user(user_id=message.from_user.id, chat_id=message.chat.id)
     row = dataBase.get_row_by_id(message.from_user.id)
     listRow = fnc.row_to_list(row)
-    loggerDEBUG.debug('когда свободна Б209?')
     listRow[3] = 3
     listRow[4] = 0
     dataBase.edit_row(listRow[0], listRow)
     fnc.general_func(message)
+    loggerDEBUG.debug(f'когда свободна Б209? {message.from_user.username} :: end')
 
 
 @bot.message_handler(content_types=['text'])
 def repeat_message(message: Message):
-    loggerDEBUG.debug(f'/text {message.from_user.username}')
+    loggerDEBUG.debug(f'/text {message.from_user.username} :: start')
     dataBase.add_user(user_id=message.from_user.id, chat_id=message.chat.id)
     regExp = fnc.text_reg_exp(message.from_user.id)
 
@@ -154,9 +161,9 @@ def repeat_message(message: Message):
         fnc.general_func(message)
 
     if message.from_user.username is None:
-        loggerDEBUG.debug(f'/text None - {message.from_user.id} - "{message.text}"')
+        loggerDEBUG.debug(f'/text None - {message.from_user.id} - "{message.text}" :: end')
     else:
-        loggerDEBUG.debug(f'/text {message.from_user.username} - {message.from_user.id} - "{message.text}"')
+        loggerDEBUG.debug(f'/text {message.from_user.username} - {message.from_user.id} - "{message.text}" :: end')
 
 
 @bot.inline_handler(func=lambda query: len(query.query) > 0)
