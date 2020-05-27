@@ -61,7 +61,7 @@ def general_func(message: Message):
         if countParam == 0:
             listRow[4] += 1
             bot.send_message(message.chat.id, strings.ENTER_COURSE_YEAR,
-                             reply_markup=kb.choiceCourse)
+                             reply_markup=kb.determine_start_keyboard(listRow[5]))
             dataBase.edit_row(listRow[0], listRow)
         elif countParam == 1:
             catch = catching_stupid_in_third(message.text)
@@ -69,7 +69,7 @@ def general_func(message: Message):
                 strOut = all_time_table_one_parameters(message)
                 if message.text == 'выйти':
                     bot.send_message(message.chat.id, 'Выберите:',
-                                     reply_markup=kb.choiceMarkup)
+                                     reply_markup=kb.determine_start_keyboard(listRow[5]))
                 else:
                     ln = len(strOut)
                     if ln == 6:
