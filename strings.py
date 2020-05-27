@@ -1,5 +1,5 @@
 SEARCH_BY_GROUP_FOR_TODAY_1 = 'Расписание группы: '
-SEARCH_BY_GROUP_FOR_TODAY_2 = ' на сегодня.'
+SEARCH_BY_GROUP_FOR_TODAY_2 = ' на сегодня'
 SEARCH_BY_GROUP = 'Поиск по группе'
 SEARCH_BY_TEACHER = 'Поиск по преподавателю'
 SEARCH_ALL_TIME_TABLE = 'Вывод полного расписания'

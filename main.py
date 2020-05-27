@@ -10,7 +10,6 @@ import threading
 import telebot
 from telebot.types import Message
 import logging
-import datetime
 
 
 # TOKEN = os.environ.get('TELEGRAM_BOT_FOR_VEGA_TOKEN')

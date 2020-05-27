@@ -8,6 +8,7 @@ import json
 
 
 class AbstractProvider:
+
     def search_group(self, g):
         pass
 
