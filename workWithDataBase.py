@@ -1,4 +1,5 @@
 import sqlite3
+import functions as fnc
 
 ''' Тут нужно обернуть все в класс BDWorker '''
 
@@ -8,38 +9,56 @@ class AbstractDBWork:
     def add_user(self, user_id: int, chat_id: int):
         pass
 
-    def edit_row(self, index, row):
+    def set_default_values(self, chat_id):
         pass
 
-    def get_all_rows(self):
+    def set_default_way(self, chat_id):
         pass
 
-    def get_row_by_id(self, user_id):
+    def set_user_id(self, chat_id, user_id):
+        pass
+
+    def set_way(self, chat_id, way):
+        pass
+
+    def set_count_parameters(self, chat_id, count_parameters):
+        pass
+
+    def set_name_group(self, chat_id, name_group):
+        pass
+
+    def set_name_teacher(self, chat_id, name_teacher):
+        pass
+
+    def get_all_chats(self):
+        pass
+
+    def get_all_chats(self):
         pass
 
     def get_user_id(self, user_id):
         pass
 
-    def get_chat_id(self):
+    def get_chat_id(self, user_id):
         pass
 
-    def get_way(self):
+    def get_way(self, user_id):
         pass
 
-    def get_count_parameters(self):
+    def get_count_parameters(self, user_id):
         pass
 
-    def get_group(self):
+    def get_group(self, user_id):
         pass
 
-    def get_teacher(self):
+    def get_teacher(self, user_id):
         pass
 
     def is_admin(self, id):
         pass
 
 
-class FileDBWork(AbstractDBWork):
+class DBWorker(AbstractDBWork):
     CONNECTION_USERS_DB = None
     CONNECTION_ADMINS_DB = None
 
@@ -77,18 +96,7 @@ class FileDBWork(AbstractDBWork):
         admins_connection.commit()
         #c.close()
 
-    def add_user(self, user_id: int, chat_id: int):
-        connection = self.CONNECTION_USERS_DB
-        c = connection.cursor()
-        try:
-            c.execute('INSERT INTO all_users (user_id, chat_id) VALUES (?, ?)', (user_id, chat_id,))
-            connection.commit()
-            #c.close()
-        except:
-            connection.commit()
-            #c.close()
-
-    def edit_row(self, index, row):
+    def __edit_row(self, index, row):
         connection = self.CONNECTION_USERS_DB
         db = connection.cursor()
         db.execute("""UPDATE all_users 
@@ -97,19 +105,7 @@ class FileDBWork(AbstractDBWork):
         connection.commit()
         #db.close()
 
-    def get_all_rows(self):
-        connection = self.CONNECTION_USERS_DB
-        db = connection.cursor()
-        db.execute("SELECT * FROM all_users")
-        allRows = []
-        while True:
-            newRow = db.fetchone()
-            if newRow == None:
-                break
-            allRows.append(newRow)
-        return allRows
-
-    def get_row_by_id(self, user_id):
+    def __get_row_by_id(self, user_id):
         connection = self.CONNECTION_USERS_DB
         db = connection.cursor()
         db.execute("SELECT * FROM all_users")
@@ -126,23 +122,98 @@ class FileDBWork(AbstractDBWork):
         #db.close()
         return 'ERROR'
 
+    def add_user(self, user_id: int, chat_id: int):
+        connection = self.CONNECTION_USERS_DB
+        c = connection.cursor()
+        try:
+            c.execute('INSERT INTO all_users (user_id, chat_id) VALUES (?, ?)', (user_id, chat_id,))
+            connection.commit()
+            #c.close()
+        except:
+            connection.commit()
+            #c.close()
+
+    def set_default_values(self, chat_id):
+        row = self.__get_row_by_id(chat_id)
+        listRow = fnc.row_to_list(row)
+        listRow[3] = -1
+        listRow[4] = 0
+        listRow[5] = ''
+        listRow[6] = ''
+        self.__edit_row(chat_id, listRow)
+
+    def set_default_way(self, chat_id):
+        self.set_way(chat_id, -1)
+
+    def set_user_id(self, chat_id, user_id):
+        connection = self.CONNECTION_USERS_DB
+        db = connection.cursor()
+        db.execute("""UPDATE all_users 
+                              SET user_id = ?
+                              WHERE chat_id=?""", (user_id, chat_id))
+        connection.commit()
+
+    def set_way(self, chat_id, way):
+        connection = self.CONNECTION_USERS_DB
+        db = connection.cursor()
+        db.execute("""UPDATE all_users 
+                                      SET way = ?
+                                      WHERE chat_id=?""", (way, chat_id))
+        connection.commit()
+
+    def set_count_parameters(self, chat_id, count_parameters):
+        connection = self.CONNECTION_USERS_DB
+        db = connection.cursor()
+        db.execute("""UPDATE all_users 
+                                      SET count_par = ?
+                                      WHERE chat_id=?""", (count_parameters, chat_id))
+        connection.commit()
+
+    def set_name_group(self, chat_id, name_group):
+        connection = self.CONNECTION_USERS_DB
+        db = connection.cursor()
+        db.execute("""UPDATE all_users 
+                                              SET name_group = ?
+                                              WHERE chat_id=?""", (name_group, chat_id))
+        connection.commit()
+
+    def set_name_teacher(self, chat_id, name_teacher):
+        connection = self.CONNECTION_USERS_DB
+        db = connection.cursor()
+        db.execute("""UPDATE all_users 
+                                                      SET name_teacher = ?
+                                                      WHERE chat_id=?""", (name_teacher, chat_id))
+        connection.commit()
+
+    def get_all_chats(self):
+        connection = self.CONNECTION_USERS_DB
+        db = connection.cursor()
+        db.execute("SELECT * FROM all_users")
+        allRows = []
+        while True:
+            newRow = db.fetchone()
+            if newRow == None:
+                break
+            allRows.append(newRow[2])
+        return allRows
+
     def get_user_id(self, user_id):
-        return self.get_row_by_id(self, user_id)[1]
+        return self.__get_row_by_id(user_id)[1]
 
     def get_chat_id(self, user_id):
-        return self.get_row_by_id(self, user_id)[2]
+        return self.__get_row_by_id(user_id)[2]
 
     def get_way(self, user_id):
-        return self.get_row_by_id(self, user_id)[3]
+        return self.__get_row_by_id(user_id)[3]
 
     def get_count_parameters(self, user_id):
-        return self.get_row_by_id(self, user_id)[4]
+        return self.__get_row_by_id(user_id)[4]
 
     def get_group(self, user_id):
-        return self.get_row_by_id(self, user_id)[5]
+        return self.__get_row_by_id(user_id)[5]
 
     def get_teacher(self, user_id):
-        return self.get_row_by_id(self, user_id)[6]
+        return self.__get_row_by_id(user_id)[6]
 
 
     def is_admin(self, id):
@@ -160,23 +231,3 @@ class FileDBWork(AbstractDBWork):
                 return True
         # db.close()
         return False
-
-
-class DBWorker:
-    def __init__(self, provider):
-        self.db_provider = provider
-
-    def add_user(self, user_id: int, chat_id: int):
-        return self.db_provider.add_user(user_id, chat_id)
-
-    def get_row_by_id(self, user_id):
-        return self.db_provider.get_row_by_id(user_id)
-
-    def edit_row(self, index, row):
-        return self.db_provider.edit_row(index, row)
-
-    def get_all_rows(self):
-        return self.db_provider.get_all_rows()
-
-    def is_admin(self, id):
-        return self.db_provider.is_admin(id)

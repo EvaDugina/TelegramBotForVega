@@ -31,6 +31,7 @@ choiceDateForB209.row("На неделе")
 
 choiceDateForCurrentGroup = telebot.types.ReplyKeyboardMarkup(1)
 choiceDateForCurrentGroup.row("На сегодня")
+choiceDateForCurrentGroup.row("На завтра")
 choiceDateForCurrentGroup.row("На неделю")
 
 
