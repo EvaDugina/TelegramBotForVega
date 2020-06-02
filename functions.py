@@ -22,7 +22,7 @@ def general_func(message: Message):
     # Работа с выводом информации--------------
     if way == 10:
         stringOut = current_group_zero_parameters(message.chat.id, message.text)
-        if stringOut != 'ERROR' and stringOut != '':
+        if stringOut is not None and stringOut != '':
             bot.send_message(message.chat.id, stringOut, reply_markup=kb.determine_start_keyboard(dataBase.get_group(message.chat.id)))
         else:
             bot.send_message(message.chat.id, strings.MESSAGE_ERROR_TEXT, reply_markup=kb.determine_start_keyboard(dataBase.get_group(message.chat.id)))
@@ -133,7 +133,7 @@ def group_zero_parameters(chat_id, text):
     elif len(arrayGroupDate) == 1 or len(arrayGroupDate) == 3:
         gr = jsonFormatter.search_group(text)
         strOut = group_one_parameter(chat_id, arrayGroupDate[0])
-        if not gr == 'ERROR':
+        if gr is not None:
             dataBase.set_name_group(chat_id, jsonFormatter.text_to_group(text).upper())
             return group_one_parameter(chat_id, '1')
         elif strOut != strings.MESSAGE_ERROR_GROUP and strOut != strings.MESSAGE_ERROR_TEXT \
@@ -235,7 +235,7 @@ def teacher_zero_parameters(chat_id, text):
     elif len(arrayTeacherDate) == 1:
         tch = jsonFormatter.search_subject(text)
         date = teacher_one_parameter(chat_id, text)
-        if not tch == 'ERROR':
+        if tch is not None:
             dataBase.set_name_teacher(chat_id, text.upper())
             return teacher_one_parameter(chat_id, '1')
         elif date != strings.MESSAGE_ERROR_DATE or text == strings.SEARCH_BY_TEACHER:
@@ -309,7 +309,7 @@ def all_time_table_one_parameters(message: Message):
         elif message.text[4:] == ' (бакалавриат)':
             strGroup += 'КМБО'
         else:
-            return 'ERROR'
+            return None
         return jsonFormatter.print_all_time_table_with_course(strGroup, year)
 
 
@@ -355,8 +355,7 @@ def data_to_array(strData):
 def sendNotif(s):
     timing = time.time()
     allChatId = main.dataBase.get_all_chats()
-    i = 0
-    while True:
+    for i in range(0, len(allChatId)):
         if time.time() - timing > 0.05:
             timing = time.time()
             chat_id = allChatId[i]
@@ -372,7 +371,6 @@ def sendNotif(s):
             except:
                 # db.close()
                 main.loggerDEBUG.warning(f'----- в chat_id: {chat_id} уведомление отправлено не было')
-            i += 1
 
 
 def row_to_list(row):
@@ -382,5 +380,5 @@ def row_to_list(row):
 
 def text_reg_exp(user_id):
     if dataBase.get_group(user_id) == '':
-        return 'ERROR'
+        return None
     return f'{strings.SEARCH_BY_GROUP_FOR_TODAY_1}"{dataBase.get_group(user_id)}"'

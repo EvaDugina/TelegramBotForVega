@@ -101,7 +101,7 @@ class DBWorker(AbstractDBWork):
         db = connection.cursor()
         db.execute("""UPDATE all_users 
                       SET way = ?, count_par = ?, name_group = ?, name_teacher = ?
-                      WHERE id=?""", (row[3], row[4], row[5], row[6], index))
+                      WHERE chat_id=?""", (row[3], row[4], row[5], row[6], index))
         connection.commit()
         #db.close()
 
@@ -120,7 +120,7 @@ class DBWorker(AbstractDBWork):
                 return row
         connection.commit()
         #db.close()
-        return 'ERROR'
+        return None
 
     def add_user(self, user_id: int, chat_id: int):
         connection = self.CONNECTION_USERS_DB
