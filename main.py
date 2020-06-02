@@ -1,46 +1,27 @@
-import config
 import functions as fnc
 import strings
 import keyboard as kb
 import inlineRealization as iRz
-import workWithDataBase as wDB
 
-from flask import Flask
 import threading
-import telebot
 from telebot.types import Message
-import logging
+from BotSetup import app, bot, dataBase, loggerDEBUG
+from BotSetup import Host, Port, NotificationMethod
 
-# TOKEN = os.environ.get('TELEGRAM_BOT_FOR_VEGA_TOKEN')
-TOKEN = config.token
-LOG_FORMAT = '%(asctime)s :: %(funcName)s :: %(message)s'
-STRING_SERVER = f'{config.Host}:{config.Port}/{config.NotificationMethod}'
-SERVER_GOOD_ANSWER = 'Notification has been sent'
+
+STRING_SERVER = f'{Host}:{Port}{NotificationMethod}'
+SERVER_GOOD_ANSWER = 'Notifications have been sent: total = {0}, passed = {1}'
 SERVER_BAD_ANSWER = 'Error!'
 
-bot = telebot.TeleBot(TOKEN)
-loggerDEBUG = logging.getLogger('logger_debug')
-loggerDEBUG.setLevel('DEBUG')
 
-logging.getLogger('urllib3').setLevel('ERROR')
-logging.getLogger('TeleBot').setLevel('ERROR')
-logging.getLogger('socks').setLevel('ERROR')
-logging.getLogger('requests').setLevel('ERROR')
-
-dataBase = wDB.DBWorker(wDB.FileDBWork("USERS_DATA_BASE.db", "ADMINS_DATA_BASE.db"))
-logging.basicConfig(level='DEBUG', filename='log.txt', format=LOG_FORMAT)
-
-app = Flask(__name__)
-
-
-@app.route(config.NotificationMethod, methods=['POST', 'GET'])
+@app.route(NotificationMethod, methods=['POST', 'GET'])
 def listen_update():
     try:
-        fnc.sendNotif('')
+        total, passed = fnc.sendNotif('')
         loggerDEBUG.debug(f'/setnew from SERVER')
+        return SERVER_GOOD_ANSWER.format(total, passed)
     except:
         return SERVER_BAD_ANSWER
-    return SERVER_GOOD_ANSWER
 
 
 @bot.message_handler(commands=['start'])
@@ -76,7 +57,6 @@ def time_table_changed(message: Message):
                        f'chat_id: {user_info.id}',
                        f'username: {user_info.username if user_info.username else "empty username"}'])
         )
-
 
 
 @bot.message_handler(commands=['help'])
@@ -145,9 +125,12 @@ def choose_way_by_b209(message: Message):
 def repeat_message(message: Message):
     loggerDEBUG.debug(f'/text {message.from_user.username} :: start')
     dataBase.add_user(message.from_user.id, message.chat.id)
+
+    #fnc.general_func(message)
+
     regExp = fnc.text_reg_exp(message.from_user.id)
 
-    if regExp != 'ERROR' and message.text == regExp:
+    if regExp and message.text == regExp:
         bot.send_message(message.chat.id, strings.ENTER_DATE_FOR_CURRENT_GROUP,
                          reply_markup=kb.choiceDateForCurrentGroup)
         row = dataBase.get_row_by_id(message.from_user.id)
@@ -172,5 +155,5 @@ def query_text(query):
 
 
 if __name__ == '__main__':
-    threading.Thread(target=app.run, args=(config.Host, config.Port)).start()
+    threading.Thread(target=app.run, args=(Host, Port)).start()
     bot.polling(none_stop=True)

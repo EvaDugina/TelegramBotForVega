@@ -1,27 +1,11 @@
-import config
 import datetime
 import keyboard as kb
-import workWithJSON as wJSON
 import strings
-import telebot
 import time
-import main
 
-from enum import Enum
-from main import dataBase
+from telebot.apihelper import ApiException
 from telebot.types import Message
-
-bot = telebot.TeleBot(config.token)
-jsonFormatter = wJSON.JsonFormatter(wJSON.FileProvider("dataTest.json"))
-
-
-class States(Enum):
-    MAIN = -1
-    GROUP_SEARCH = 0
-    TEACHER_SEARCH = 1
-    FULL_TIMETABLE = 2
-    BEST_ROOM = 3
-    CURRENT_GROUP_SEARCH = 10
+from BotSetup import bot, dataBase, jsonFormatter, loggerDEBUG, States
 
 
 def general_func(message: Message):
@@ -393,25 +377,25 @@ def data_to_array(strData):
 
 def sendNotif(s):
     timing = time.time()
-    allRows = main.dataBase.get_all_rows()
+    allRows = dataBase.get_all_rows()
     i = 0
-    while True:
+    admin_message = s + '\n' if s else s
+    total = 0
+    passed = 0
+    for row in allRows:  # TODO: for chat_id in dataBase.get_users_id() [сейчас это allRows?]
         if time.time() - timing > 0.05:
             timing = time.time()
-            chat_id = allRows[i][2]
+            chat_id = row[2]
             try:
-                # db.close()
-                if s == '':
-                    bot.send_message(chat_id,
-                                     strings.MESSAGE_SEND_NOTIFICATION_first + strings.MESSAGE_SEND_NOTIFICATION_second)
-                    main.STRING_RETURN += f'{chat_id} уведомление отправлено\n'
-                else:
-                    bot.send_message(chat_id,
-                                     strings.MESSAGE_SEND_NOTIFICATION_first + s + "\n" + strings.MESSAGE_SEND_NOTIFICATION_second)
-            except:
-                # db.close()
-                main.loggerDEBUG.warning(f'----- в chat_id: {chat_id} уведомление отправлено не было')
+                bot.send_message(chat_id,
+                                 f'{strings.NOTIFICATION_HEAD}{admin_message}{strings.NOTIFICATION_TAIL}')
+                total += 1
+
+            except ApiException:
+                loggerDEBUG.warning(f'----- в chat_id: {chat_id} уведомление отправлено не было')
+                passed += 0
             i += 1
+    return total, passed
 
 
 def row_to_list(row):
@@ -423,5 +407,5 @@ def text_reg_exp(user_id):
     row = dataBase.get_row_by_id(user_id)
     listRow = row_to_list(row)
     if listRow[5] == '':
-        return 'ERROR'
+        return None
     return f'{strings.SEARCH_BY_GROUP_FOR_TODAY_1}"{listRow[5]}"'
