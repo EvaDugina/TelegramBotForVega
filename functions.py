@@ -1,17 +1,27 @@
-import workWithJSON as wJSON
-import keyboard as kb
-import main
-from main import dataBase
-import strings
 import config
-
-import time
 import datetime
+import keyboard as kb
+import workWithJSON as wJSON
+import strings
 import telebot
+import time
+import main
+
+from enum import Enum
+from main import dataBase
 from telebot.types import Message
 
 bot = telebot.TeleBot(config.token)
 jsonFormatter = wJSON.JsonFormatter(wJSON.FileProvider("dataTest.json"))
+
+
+class States(Enum):
+    MAIN = -1
+    GROUP_SEARCH = 0
+    TEACHER_SEARCH = 1
+    FULL_TIMETABLE = 2
+    BEST_ROOM = 3
+    CURRENT_GROUP_SEARCH = 10
 
 
 def general_func(message: Message):
@@ -22,7 +32,7 @@ def general_func(message: Message):
     countParam = row[4]
 
     # Работа с выводом информации--------------
-    if way == 10:
+    if way == States.CURRENT_GROUP_SEARCH:
         stringOut = current_group_zero_parameters(message.chat.id, message.text)
         if stringOut != 'ERROR' and stringOut != '':
             bot.send_message(message.chat.id, stringOut, reply_markup=kb.determine_start_keyboard(listRow[5]))
@@ -33,7 +43,7 @@ def general_func(message: Message):
         bot.send_message(message.chat.id, strings.MESSAGE_ONE_OF_LIST_COMMANDS,
                          reply_markup=kb.determine_start_keyboard(listRow[5]))
 
-    elif way == 0:
+    elif way == States.GROUP_SEARCH:
         if countParam == 0:
             stringOut = group_zero_parameters(message.chat.id, message.text)
             if stringOut == strings.MESSAGE_ERROR_GROUP or stringOut == strings.MESSAGE_ERROR_DATE:
@@ -55,7 +65,7 @@ def general_func(message: Message):
             bot.send_message(message.chat.id, strings.MESSAGE_ONE_OF_LIST_COMMANDS,
                              reply_markup=kb.determine_start_keyboard(listRow[5]))
 
-    elif way == 1:
+    elif way == States.TEACHER_SEARCH:
         if countParam == 0:
             stringOut = teacher_zero_parameters(message.chat.id, message.text)
             if stringOut == strings.MESSAGE_ERROR_TEACHER or stringOut == strings.MESSAGE_ERROR_DATE:
@@ -76,7 +86,7 @@ def general_func(message: Message):
             bot.send_message(message.chat.id, strings.MESSAGE_ONE_OF_LIST_COMMANDS,
                              reply_markup=kb.determine_start_keyboard(listRow[5]))
 
-    elif way == 2:
+    elif way == States.FULL_TIMETABLE:
         if countParam == 0:
             listRow[4] += 1
             bot.send_message(message.chat.id, strings.ENTER_COURSE_YEAR,
@@ -105,7 +115,7 @@ def general_func(message: Message):
             bot.send_message(message.chat.id, strings.MESSAGE_ONE_OF_LIST_COMMANDS,
                              reply_markup=kb.determine_start_keyboard(listRow[5]))
 
-    elif way == 3:
+    elif way == States.BEST_ROOM:
         #main.loggerDEBUG.debug('когда свободна Б-209? (0)')
         if message.text == 'Сегодня':
             date = datetime.datetime.today()
