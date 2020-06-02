@@ -353,10 +353,10 @@ def sendNotif(s):
     admin_message = s + '\n' if s else s
     total = 0
     passed = 0
-    for row in allChatId:  # TODO: for chat_id in dataBase.get_users_id() [сейчас это allRows?]
+    for chat_id in allChatId:  # TODO: for chat_id in dataBase.get_users_id() [сейчас это allRows?]
         if time.time() - timing > 0.05:
             timing = time.time()
-            chat_id = allChatId[i]
+            # chat_id = allChatId[i]
             try:
                 bot.send_message(chat_id,
                                  f'{strings.NOTIFICATION_HEAD}{admin_message}{strings.NOTIFICATION_TAIL}')
