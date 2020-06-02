@@ -16,7 +16,7 @@ def determine_the_year():
 def determine_start_keyboard(strGroup):
     choiceMarkup = telebot.types.ReplyKeyboardMarkup(1)
     if strGroup != '':
-        choiceMarkup.row(f'{strings.SEARCH_BY_GROUP_FOR_TODAY_1}"{strGroup}"{strings.SEARCH_BY_GROUP_FOR_TODAY_2}')
+        choiceMarkup.row(f'{strings.SEARCH_BY_GROUP_FOR_TODAY_1}"{strGroup}"')
     choiceMarkup.row(strings.SEARCH_BY_GROUP)
     choiceMarkup.row(strings.SEARCH_BY_TEACHER)
     choiceMarkup.row(strings.SEARCH_ALL_TIME_TABLE)
@@ -24,10 +24,19 @@ def determine_start_keyboard(strGroup):
     return choiceMarkup
 
 
+choiceDateForB209 = telebot.types.ReplyKeyboardMarkup(1)
+choiceDateForB209.row("Сегодня")
+choiceDateForB209.row("На неделе")
+
+
+choiceDateForCurrentGroup = telebot.types.ReplyKeyboardMarkup(1)
+choiceDateForCurrentGroup.row("На сегодня")
+choiceDateForCurrentGroup.row("На неделю")
+
+
 choiceCourse = telebot.types.ReplyKeyboardMarkup(1)
 number = determine_the_year()
 
-# use format-strings
 STRBUTTONSTHIRD_1 = f'20{number} (бакалавриат)'
 STRBUTTONSTHIRD_2 = f'20{(number - 1)} (бакалавриат)'
 STRBUTTONSTHIRD_3 = f'20{(number - 2)} (бакалавриат)'

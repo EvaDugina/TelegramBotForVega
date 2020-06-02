@@ -1,4 +1,5 @@
 import json
+import strings
 
 ''' 
 Это интерфейс для классов, которые будут получать данные 
@@ -93,7 +94,7 @@ class JsonFormatter:
         for day in jsonGroup:
             if day['day'] == dayWeek:
                 return self.outputFormat(day)
-        return f'{dayWeek}:\nЗанятия отсутсвуют.'
+        return f'{dayWeek}:\n{strings.NO_PARS}'
 
     def search_by_group(self, group):  # -Работает
         arrayDays = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС']
@@ -101,7 +102,7 @@ class JsonFormatter:
         timeTable = ''
         for day in arrayDays:
             text = self.search_by_group_and_date(group, day)
-            if not text == 'Занятия отсутсвуют.':
+            if not text == strings.NO_PARS:
                 timeTable += text + '\n'
                 indexDay += 1
             else:
@@ -135,7 +136,7 @@ class JsonFormatter:
             timeTable += f'{strTimeTable[i]} \n' if lesson else ''
 
         if timeTable == dayWeek + ':\n':
-            return f'{dayWeek}:\nЗанятия отсутсвуют.'
+            return f'{dayWeek}:\n{strings.NO_PARS}'
         else:
             return timeTable
 
@@ -149,7 +150,7 @@ class JsonFormatter:
         timeTable = ''
         for day in arrayDays:
             s = self.search_by_teacher_and_date(teacher, day)
-            if not s == 'Занятия отсутствуют.':
+            if not s == strings.NO_PARS:
                 timeTable += f'{s}\n'
             else:
                 timeTable += f'{arrayDays[indexDay]}:\n{s}\n\n'
@@ -181,11 +182,11 @@ class JsonFormatter:
 
         return timeTable
 
+
     def when_b209_is_free(self):
         countPars = [0] * 7
         for i in range(7):
             countPars[i] = [0] * 7
-        arrayDays = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС']
         indexDay = 0
         for gr in self.provider.data['groups']:
             for day in gr['days']:
@@ -198,9 +199,9 @@ class JsonFormatter:
 
         timeTable = ''
         indexDay = 0
+        arrayDays = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС']
         for dayWeek in arrayDays:
             timeTable += f'{dayWeek}:\n'
-
             for i in range(0, 7):
                 count = countPars[indexDay][i]
                 timeTable += f'{i + 1} - '
@@ -212,8 +213,33 @@ class JsonFormatter:
                     timeTable += 'занята\n'
             timeTable += '\n'
             indexDay += 1
-
         return timeTable
+
+
+    def when_b209_is_free_by_date(self, dayWeek):
+        countPars = [0] * 7
+        for gr in self.provider.data['groups']:
+            for day in gr['days']:
+                if day['day'] == dayWeek:
+                    for lesson in day['pars']:
+                        indexPars = int(lesson['number']) - 1
+                        if not lesson['place'].find('Б-209') == -1:
+                            countPars[indexPars] += 1
+
+        timeTable = ''
+        timeTable += f'{dayWeek}:\n'
+        for i in range(0, 7):
+            count = countPars[i]
+            timeTable += f'{i + 1} - '
+            if count == 0:
+                timeTable += 'полностью свободна\n'
+            elif count == 1:
+                timeTable += 'свободна наполовину\n'
+            else:
+                timeTable += 'занята\n'
+        timeTable += '\n'
+        return timeTable
+
 
     # для query -----------------------------------------------------
 

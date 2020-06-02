@@ -11,7 +11,6 @@ import telebot
 from telebot.types import Message
 import logging
 
-
 # TOKEN = os.environ.get('TELEGRAM_BOT_FOR_VEGA_TOKEN')
 TOKEN = config.token
 LOG_FORMAT = '%(asctime)s :: %(funcName)s :: %(message)s'
@@ -27,9 +26,8 @@ logging.getLogger('TeleBot').setLevel('ERROR')
 logging.getLogger('socks').setLevel('ERROR')
 logging.getLogger('requests').setLevel('ERROR')
 
-dataBase = wDB.FileDBWork("USERS_DATA_BASE.db", "ADMINS_DATA_BASE.db")
+dataBase = wDB.DBWorker(wDB.FileDBWork("USERS_DATA_BASE.db", "ADMINS_DATA_BASE.db"))
 logging.basicConfig(level='DEBUG', filename='log.txt', format=LOG_FORMAT)
-
 
 app = Flask(__name__)
 
@@ -43,7 +41,7 @@ def listen_update():
 
 @bot.message_handler(commands=['start'])
 def process_start_command(message: Message):
-    dataBase.add_user(user_id=message.from_user.id, chat_id=message.chat.id)
+    dataBase.add_user(message.from_user.id, message.chat.id)
     row = dataBase.get_row_by_id(message.from_user.id)
     listRow = fnc.row_to_list(row)
     listRow[3] = -1
@@ -60,7 +58,7 @@ def process_start_command(message: Message):
 
 @bot.message_handler(commands=['setnew'])
 def time_table_changed(message: Message):
-    if fnc.isAdmin(message.from_user.id):
+    if dataBase.is_admin(message.from_user.id):
         s = message.text.split(' ')
         option = ''
         if len(s) > 1:
@@ -79,14 +77,14 @@ def time_table_changed(message: Message):
                                            f'username: None']))
         else:
             loggerDEBUG.warning('\n'.join([f'/setnew ----- ВНИМАНИЕ!!! ',
-                                       f'пользователь, НЕ ЯВЛЯЮЩИЙСЯ АДМИНОМ использовал /setnew',
-                                       f'chat_id: {message.from_user.id}',
-                                       f'username: {message.from_user.username}']))
+                                           f'пользователь, НЕ ЯВЛЯЮЩИЙСЯ АДМИНОМ использовал /setnew',
+                                           f'chat_id: {message.from_user.id}',
+                                           f'username: {message.from_user.username}']))
 
 
 @bot.message_handler(commands=['help'])
 def send_list_of_commands(message: Message):
-    dataBase.add_user(user_id=message.from_user.id, chat_id=message.chat.id)
+    dataBase.add_user(message.from_user.id, message.chat.id)
     bot.send_message(message.chat.id, strings.INSTROUCTIONS_HELP)
     if message.from_user.username is None:
         loggerDEBUG.debug(f'/help None - {message.from_user.id}')
@@ -96,74 +94,77 @@ def send_list_of_commands(message: Message):
 
 @bot.message_handler(regexp=strings.SEARCH_BY_GROUP)
 def choose_way_search_by_group(message: Message):
-    loggerDEBUG.debug(f'поиск по группе {message.from_user.username} :: start')
-    dataBase.add_user(user_id=message.from_user.id, chat_id=message.chat.id)
+    loggerDEBUG.debug(f'{message.from_user.username} :: "ПОИСК ПО ГРУППЕ" :: start')
+    dataBase.add_user(message.from_user.id, message.chat.id)
     row = dataBase.get_row_by_id(message.from_user.id)
     listRow = fnc.row_to_list(row)
     listRow[3] = 0
     listRow[4] = 0
     dataBase.edit_row(listRow[0], listRow)
-    bot.send_message(message.chat.id, strings.ENTER_GROUP)
-    loggerDEBUG.debug(f'поиск по группе {message.from_user.username} :: end')
+    bot.send_message(message.chat.id, strings.ENTER_GROUP, reply_markup=kb.determine_start_keyboard(listRow[5]))
+    loggerDEBUG.debug(f'{message.from_user.username} :: "ПОИСК ПО ГРУППЕ" :: end')
 
 
 @bot.message_handler(regexp=strings.SEARCH_BY_TEACHER)
 def choose_way_search_by_teacher(message: Message):
-    loggerDEBUG.debug(f'поиск по преподавателю {message.from_user.username} :: start')
-    dataBase.add_user(user_id=message.from_user.id, chat_id=message.chat.id)
+    loggerDEBUG.debug(f'{message.from_user.username} :: "ПОИСК ПО ПРЕПОДАВАТЕЛЮ" :: start')
+    dataBase.add_user(message.from_user.id, message.chat.id)
     row = dataBase.get_row_by_id(message.from_user.id)
     listRow = fnc.row_to_list(row)
     listRow[3] = 1
     listRow[4] = 0
     dataBase.edit_row(listRow[0], listRow)
-    bot.send_message(message.chat.id, strings.ENTER_TEACHER)
-    loggerDEBUG.debug(f'поиск по группе {message.from_user.username} :: end')
+    bot.send_message(message.chat.id, strings.ENTER_TEACHER, reply_markup=kb.determine_start_keyboard(listRow[5]))
+    loggerDEBUG.debug(f'{message.from_user.username} :: "ПОИСК ПО ПРЕПОДАВАТЕЛЮ" :: end')
 
 
 @bot.message_handler(regexp=strings.SEARCH_ALL_TIME_TABLE)
 def choose_way_all_time_table(message: Message):
-    loggerDEBUG.debug(f'вывод всего расписания {message.from_user.username}')
-    dataBase.add_user(user_id=message.from_user.id, chat_id=message.chat.id)
+    loggerDEBUG.debug(f'{message.from_user.username} :: "ВЫВОД ВСЕГО РАСПИСАНИЯ" :: start')
+    dataBase.add_user(message.from_user.id, message.chat.id)
     row = dataBase.get_row_by_id(message.from_user.id)
     listRow = fnc.row_to_list(row)
     listRow[3] = 2
     listRow[4] = 0
     dataBase.edit_row(listRow[0], listRow)
     fnc.general_func(message)
+    loggerDEBUG.debug(f'{message.from_user.username} :: "ВЫВОД ВСЕГО РАСПИСАНИЯ" :: end')
 
 
 @bot.message_handler(regexp=strings.SEARCH_BY_B209)
 def choose_way_by_b209(message: Message):
-    loggerDEBUG.debug(f'когда свободна Б209? {message.from_user.username} :: start')
-    dataBase.add_user(user_id=message.from_user.id, chat_id=message.chat.id)
+    loggerDEBUG.debug(f'{message.from_user.username} :: "КОГДА СВОБОДНА Б209?" :: start')
+    dataBase.add_user(message.from_user.id, message.chat.id)
     row = dataBase.get_row_by_id(message.from_user.id)
     listRow = fnc.row_to_list(row)
     listRow[3] = 3
     listRow[4] = 0
     dataBase.edit_row(listRow[0], listRow)
-    fnc.general_func(message)
-    loggerDEBUG.debug(f'когда свободна Б209? {message.from_user.username} :: end')
+    bot.send_message(message.chat.id, strings.ENTER_DATE_FOR_CURRENT_GROUP, reply_markup=kb.choiceDateForB209)
+    loggerDEBUG.debug(f'{message.from_user.username} :: "КОГДА СВОБОДНА Б209?" :: end')
 
 
 @bot.message_handler(content_types=['text'])
 def repeat_message(message: Message):
     loggerDEBUG.debug(f'/text {message.from_user.username} :: start')
-    dataBase.add_user(user_id=message.from_user.id, chat_id=message.chat.id)
+    dataBase.add_user(message.from_user.id, message.chat.id)
     regExp = fnc.text_reg_exp(message.from_user.id)
 
     if regExp != 'ERROR' and message.text == regExp:
-        bot.send_message(message.chat.id, fnc.group_one_parameter(message.chat.id, '1'))
+        bot.send_message(message.chat.id, strings.ENTER_DATE_FOR_CURRENT_GROUP,
+                         reply_markup=kb.choiceDateForCurrentGroup)
         row = dataBase.get_row_by_id(message.from_user.id)
         listRow = fnc.row_to_list(row)
-        listRow[3] = -1
+        listRow[3] = 10
         dataBase.edit_row(listRow[0], listRow)
     else:
         fnc.general_func(message)
 
-    if message.from_user.username is None:
-        loggerDEBUG.debug(f'/text None - {message.from_user.id} - "{message.text}" :: end')
-    else:
-        loggerDEBUG.debug(f'/text {message.from_user.username} - {message.from_user.id} - "{message.text}" :: end')
+    try:
+        loggerDEBUG.debug(f'/text {message.from_user.username} - {message.from_user.id} - "{message.text}" :: end',
+                          encoding='utf-8')
+    except:
+        loggerDEBUG.debug(f'/text {message.from_user.username} - {message.from_user.id} - "некоорректный ввод" :: end')
 
 
 @bot.inline_handler(func=lambda query: len(query.query) > 0)
