@@ -28,7 +28,9 @@ def listen_update():
 def process_start_command(message: Message):
     dataBase.add_user(message.from_user.id, message.chat.id)
     dataBase.set_default_values(message.chat.id)
-    bot.send_message(message.from_user.id, strings.MESSAGE_START, reply_markup=kb.determine_start_keyboard(listRow[5]))
+    bot.send_message(message.from_user.id,
+                     strings.MESSAGE_START,
+                     reply_markup=kb.determine_start_keyboard(dataBase.get_group(message.chat.id)))
     if message.from_user.username is None:
         loggerDEBUG.debug(f'/start None - {message.from_user.id}')
     else:
