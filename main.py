@@ -15,7 +15,8 @@ import logging
 TOKEN = config.token
 LOG_FORMAT = '%(asctime)s :: %(funcName)s :: %(message)s'
 STRING_SERVER = f'{config.Host}:{config.Port}/{config.NotificationMethod}'
-STRING_RETURN = ''
+SERVER_GOOD_ANSWER = 'Notification has been sent'
+SERVER_BAD_ANSWER = 'Error!'
 
 bot = telebot.TeleBot(TOKEN)
 loggerDEBUG = logging.getLogger('logger_debug')
@@ -34,9 +35,12 @@ app = Flask(__name__)
 
 @app.route(config.NotificationMethod, methods=['POST', 'GET'])
 def listen_update():
-    fnc.sendNotif('')
-    loggerDEBUG.debug(f'/setnew from SERVER')
-    return STRING_RETURN
+    try:
+        fnc.sendNotif('')
+        loggerDEBUG.debug(f'/setnew from SERVER')
+    except:
+        return SERVER_BAD_ANSWER
+    return SERVER_GOOD_ANSWER
 
 
 @bot.message_handler(commands=['start'])
@@ -58,28 +62,21 @@ def process_start_command(message: Message):
 
 @bot.message_handler(commands=['setnew'])
 def time_table_changed(message: Message):
+    user_info = message.from_user
     if dataBase.is_admin(message.from_user.id):
-        s = message.text.split(' ')
-        option = ''
-        if len(s) > 1:
-            for i in range(1, len(s)):
-                option += s[i] + ' '
+        option = message.text.strip('/setnew ')
         fnc.sendNotif(option)
-        if message.from_user.username is None:
-            loggerDEBUG.debug(f'/setnew None - {message.from_user.id} - {option}')
-        else:
-            loggerDEBUG.debug(f'/setnew {message.from_user.username} - {message.from_user.id} - {option}')
+        loggerDEBUG.debug(
+            f'/setnew {user_info.username if user_info.username else ""} - {user_info.id} - {option}'
+        )
     else:
-        if message.from_user.username is None:
-            loggerDEBUG.warning('\n'.join([f'/setnew ----- ВНИМАНИЕ!!! ',
-                                           f'пользователь, НЕ ЯВЛЯЮЩИЙСЯ АДМИНОМ использовал /setnew',
-                                           f'chat_id: {message.from_user.id}',
-                                           f'username: None']))
-        else:
-            loggerDEBUG.warning('\n'.join([f'/setnew ----- ВНИМАНИЕ!!! ',
-                                           f'пользователь, НЕ ЯВЛЯЮЩИЙСЯ АДМИНОМ использовал /setnew',
-                                           f'chat_id: {message.from_user.id}',
-                                           f'username: {message.from_user.username}']))
+        loggerDEBUG.warning(
+            '\n'.join(['/setnew ----- ВНИМАНИЕ!!! ',
+                       'пользователь, НЕ ЯВЛЯЮЩИЙСЯ АДМИНОМ использовал /setnew',
+                       f'chat_id: {user_info.id}',
+                       f'username: {user_info.username if user_info.username else "empty username"}'])
+        )
+
 
 
 @bot.message_handler(commands=['help'])
