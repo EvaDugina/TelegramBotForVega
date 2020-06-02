@@ -16,79 +16,64 @@ jsonFormatter = wJSON.JsonFormatter(wJSON.FileProvider("dataTest.json"))
 
 def general_func(message: Message):
     # Обработка выбора пути с ReplyKeyboardMarkup
-    row = dataBase.get_row_by_id(message.from_user.id)
-    listRow = row_to_list(row)
-    way = row[3]
-    countParam = row[4]
+    way = dataBase.get_way(message.chat.id)
+    countParam = dataBase.get_count_parameters(message.chat.id)
 
     # Работа с выводом информации--------------
     if way == 10:
         stringOut = current_group_zero_parameters(message.chat.id, message.text)
         if stringOut != 'ERROR' and stringOut != '':
-            bot.send_message(message.chat.id, stringOut, reply_markup=kb.determine_start_keyboard(listRow[5]))
+            bot.send_message(message.chat.id, stringOut, reply_markup=kb.determine_start_keyboard(dataBase.get_group(message.chat.id)))
         else:
-            bot.send_message(message.chat.id, strings.MESSAGE_ERROR_TEXT, reply_markup=kb.determine_start_keyboard(listRow[5]))
-        listRow[3] = -1
-        dataBase.edit_row(listRow[0], listRow)
+            bot.send_message(message.chat.id, strings.MESSAGE_ERROR_TEXT, reply_markup=kb.determine_start_keyboard(dataBase.get_group(message.chat.id)))
+        dataBase.set_way(message.chat.id, -1)
         bot.send_message(message.chat.id, strings.MESSAGE_ONE_OF_LIST_COMMANDS,
-                         reply_markup=kb.determine_start_keyboard(listRow[5]))
+                         reply_markup=kb.determine_start_keyboard(dataBase.get_group(message.chat.id)))
 
     elif way == 0:
         if countParam == 0:
             stringOut = group_zero_parameters(message.chat.id, message.text)
             if stringOut == strings.MESSAGE_ERROR_GROUP or stringOut == strings.MESSAGE_ERROR_DATE:
-                row = dataBase.get_row_by_id(message.from_user.id)
-                listRow = row_to_list(row)
                 bot.send_message(message.chat.id, stringOut)
-                if listRow[5] != '':
-                    bot.send_message(message.chat.id, f'\nТЕКУЩАЯ ГРУППА: {listRow[5]}')
+                if dataBase.get_group(message.chat.id) != '':
+                    bot.send_message(message.chat.id, f'\nТЕКУЩАЯ ГРУППА: {dataBase.get_group(message.chat.id)}')
             elif not stringOut == '' and stringOut is not None:
-                row = dataBase.get_row_by_id(message.from_user.id)
-                listRow = row_to_list(row)
                 bot.send_message(message.chat.id, stringOut)
-                if listRow[5] != '':
+                if dataBase.get_group(message.chat.id) != '':
                     bot.send_message(message.chat.id,
-                                     strings.MESSAGE_ONLY_DATE_GROUP + f'\nТЕКУЩАЯ ГРУППА: {listRow[5]}',
-                                     reply_markup=kb.determine_start_keyboard(listRow[5]))
-            listRow[3] = -1
-            dataBase.edit_row(listRow[0], listRow)
+                                     strings.MESSAGE_ONLY_DATE_GROUP + f'\nТЕКУЩАЯ ГРУППА: {dataBase.get_group(message.chat.id)}',
+                                     reply_markup=kb.determine_start_keyboard(dataBase.get_group(message.chat.id)))
+            dataBase.set_way(message.chat.id, -1)
             bot.send_message(message.chat.id, strings.MESSAGE_ONE_OF_LIST_COMMANDS,
-                             reply_markup=kb.determine_start_keyboard(listRow[5]))
+                             reply_markup=kb.determine_start_keyboard(dataBase.get_group(message.chat.id)))
 
     elif way == 1:
         if countParam == 0:
             stringOut = teacher_zero_parameters(message.chat.id, message.text)
             if stringOut == strings.MESSAGE_ERROR_TEACHER or stringOut == strings.MESSAGE_ERROR_DATE:
-                row = dataBase.get_row_by_id(message.from_user.id)
-                listRow = row_to_list(row)
                 bot.send_message(message.chat.id, stringOut)
-                if listRow[6] != '':
-                    bot.send_message(message.chat.id, f'\nТЕКУЩИЙ ПРЕПОДАВАТЕЛЬ: {listRow[6]}')
+                if dataBase.get_teacher(message.chat.id) != '':
+                    bot.send_message(message.chat.id, f'\nТЕКУЩИЙ ПРЕПОДАВАТЕЛЬ: {dataBase.get_teacher(message.chat.id)}')
             elif not stringOut == '' and stringOut is not None:
-                row = dataBase.get_row_by_id(message.from_user.id)
-                listRow = row_to_list(row)
                 bot.send_message(message.chat.id, stringOut)
-                if listRow[6] != '':
+                if dataBase.get_teacher(message.chat.id) != '':
                     bot.send_message(message.chat.id,
-                                     strings.MESSAGE_ONLY_DATE_TEACHER + f'\nТЕКУЩИЙ ПРЕПОДАВАТЕЛЬ: {listRow[6]}')
-            listRow[3] = -1
-            dataBase.edit_row(listRow[0], listRow)
+                                     strings.MESSAGE_ONLY_DATE_TEACHER + f'\nТЕКУЩИЙ ПРЕПОДАВАТЕЛЬ: {dataBase.get_teacher(message.chat.id)}')
+            dataBase.set_way(message.chat.id, -1)
             bot.send_message(message.chat.id, strings.MESSAGE_ONE_OF_LIST_COMMANDS,
-                             reply_markup=kb.determine_start_keyboard(listRow[5]))
+                             reply_markup=kb.determine_start_keyboard(dataBase.get_group(message.chat.id)))
 
     elif way == 2:
         if countParam == 0:
-            listRow[4] += 1
             bot.send_message(message.chat.id, strings.ENTER_COURSE_YEAR,
                              reply_markup=kb.choiceCourse)
-            dataBase.edit_row(listRow[0], listRow)
+            dataBase.set_count_parameters(message.chat.id, dataBase.get_count_parameters(message.chat.id) + 1)
         elif countParam == 1:
             catch = catching_stupid_in_third(message.text)
             if not catch:
                 strOut = all_time_table_one_parameters(message)
                 if message.text == 'выйти':
-                    bot.send_message(message.chat.id, strings.MESSAGE_ONE_OF_LIST_COMMANDS,
-                                     reply_markup=kb.determine_start_keyboard(listRow[5]))
+                    pass
                 else:
                     ln = len(strOut)
                     if ln == 6:
@@ -99,11 +84,9 @@ def general_func(message: Message):
             else:
                 #main.loggerDEBUG.debug('вывод всего расписания (null)')
                 bot.send_message(message.chat.id, strings.MESSAGE_ERROR_ALL_TIME_TABLE)
-
-            listRow[3] = -1
-            dataBase.edit_row(listRow[0], listRow)
+            dataBase.set_way(message.chat.id, -1)
             bot.send_message(message.chat.id, strings.MESSAGE_ONE_OF_LIST_COMMANDS,
-                             reply_markup=kb.determine_start_keyboard(listRow[5]))
+                             reply_markup=kb.determine_start_keyboard(dataBase.get_group(message.chat.id)))
 
     elif way == 3:
         #main.loggerDEBUG.debug('когда свободна Б-209? (0)')
@@ -122,10 +105,9 @@ def general_func(message: Message):
             except:
                 bot.send_message(message.chat.id, strings.MESSAGE_ERROR_DATE)
 
-        listRow[3] = -1
-        dataBase.edit_row(listRow[0], listRow)
+        dataBase.set_way(message.chat.id, -1)
         bot.send_message(message.chat.id, strings.MESSAGE_ONE_OF_LIST_COMMANDS,
-                         reply_markup=kb.determine_start_keyboard(listRow[5]))
+                         reply_markup=kb.determine_start_keyboard(dataBase.get_group(message.chat.id)))
 
     else:
         bot.send_message(message.chat.id, strings.MESSAGE_ERROR_TEXT)
@@ -135,6 +117,8 @@ def current_group_zero_parameters(chat_id, text):
     #main.loggerDEBUG.debug('Текущая группа (0)')
     if text == 'На сегодня':
         return group_one_parameter(chat_id, '1')
+    elif text == 'На завтра':
+        return group_one_parameter(chat_id, '2')
     elif text == 'На неделю':
         return group_one_parameter(chat_id, '7')
     else:
@@ -143,8 +127,6 @@ def current_group_zero_parameters(chat_id, text):
 
 def group_zero_parameters(chat_id, text):
     #main.loggerDEBUG.debug('поиск по группе (0)')
-    row = dataBase.get_row_by_id(chat_id)
-    listRow = row_to_list(row)
     arrayGroupDate = text.split(' ')
     if text == "Поиск по группе":
         pass
@@ -152,8 +134,7 @@ def group_zero_parameters(chat_id, text):
         gr = jsonFormatter.search_group(text)
         strOut = group_one_parameter(chat_id, arrayGroupDate[0])
         if not gr == 'ERROR':
-            listRow[5] = jsonFormatter.text_to_group(text).upper()
-            dataBase.edit_row(listRow[0], listRow)
+            dataBase.set_name_group(chat_id, jsonFormatter.text_to_group(text).upper())
             return group_one_parameter(chat_id, '1')
         elif strOut != strings.MESSAGE_ERROR_GROUP and strOut != strings.MESSAGE_ERROR_TEXT \
                 and strOut != strings.MESSAGE_ERROR_DATE:
@@ -163,6 +144,15 @@ def group_zero_parameters(chat_id, text):
                     return ''
                 else:
                     return strOut
+            strDate = '.'.join([arrayGroupDate[1], arrayGroupDate[2]])
+            strOut = group_one_parameter(chat_id, strDate)
+            if strOut == strings.MESSAGE_ERROR_DATE:
+                bot.send_message(chat_id, strings.MESSAGE_ERROR_DATE)
+                return ''
+            else:
+                return strOut
+        strOut = group_zero_parameters(chat_id, arrayGroupDate[0])
+        if strOut != strings.MESSAGE_ERROR_GROUP and strOut != '':
             strDate = '.'.join([arrayGroupDate[1], arrayGroupDate[2]])
             strOut = group_one_parameter(chat_id, strDate)
             if strOut == strings.MESSAGE_ERROR_DATE:
@@ -183,19 +173,6 @@ def group_zero_parameters(chat_id, text):
             return group_one_parameter(chat_id, arrayGroupDate[1])
         else:
             bot.send_message(chat_id, date)
-            return ''
-    elif len(arrayGroupDate) == 3:
-        strOut = group_zero_parameters(chat_id, arrayGroupDate[0])
-        if strOut != strings.MESSAGE_ERROR_GROUP and strOut != '':
-            strDate = '.'.join([arrayGroupDate[1], arrayGroupDate[2]])
-            strOut = group_one_parameter(chat_id, strDate)
-            if strOut == strings.MESSAGE_ERROR_DATE:
-                bot.send_message(chat_id, strings.MESSAGE_ERROR_DATE)
-                return ''
-            else:
-                return strOut
-        else:
-            bot.send_message(chat_id, strings.MESSAGE_ERROR_TEXT)
             return ''
     elif len(arrayGroupDate) == 4:
         strOut = group_zero_parameters(chat_id, arrayGroupDate[0] + arrayGroupDate[1] + arrayGroupDate[2])
@@ -226,32 +203,32 @@ def group_zero_parameters(chat_id, text):
 
 def group_one_parameter(chat_id, text):
     #main.loggerDEBUG.debug('поиск по группе (1)')
-    row = dataBase.get_row_by_id(chat_id)
-    listRow = row_to_list(row)
     if text == '1':
         date = datetime.datetime.today()
-        group = jsonFormatter.search_by_group_and_date(listRow[5], jsonFormatter.week_to_string(date.weekday()))
+        group = jsonFormatter.search_by_group_and_date(dataBase.get_group(chat_id),
+                                                       jsonFormatter.week_to_string(date.weekday()))
+        return group
+    elif text == '2':
+        date = datetime.datetime.today() + datetime.timedelta(days=1)
+        group = jsonFormatter.search_by_group_and_date(dataBase.get_group(chat_id),
+                                                       jsonFormatter.week_to_string(date.weekday()))
         return group
     elif text == '7':
-        group = jsonFormatter.search_by_group(listRow[5])
+        group = jsonFormatter.search_by_group(dataBase.get_group(chat_id))
         return group
     try:
         arrayData = data_to_array(text)
         date = datetime.datetime(int(arrayData[2]), int(arrayData[1]), int(arrayData[0]))
-        group = jsonFormatter.search_by_group_and_date(listRow[5], jsonFormatter.week_to_string(date.weekday()))
-        dataBase.edit_row(listRow[0], listRow)
+        group = jsonFormatter.search_by_group_and_date(dataBase.get_group(chat_id), jsonFormatter.week_to_string(date.weekday()))
         return group
     except:
-        dataBase.edit_row(listRow[0], listRow)
-        if listRow[5] == '':
+        if dataBase.get_group(chat_id) == '':
             return strings.MESSAGE_ERROR_GROUP
         return strings.MESSAGE_ERROR_DATE
 
 
 def teacher_zero_parameters(chat_id, text):
     #main.loggerDEBUG.debug('поиск по преподавателю (0)')
-    row = dataBase.get_row_by_id(chat_id)
-    listRow = row_to_list(row)
     arrayTeacherDate = text.split(' ')
     if text == "Поиск по преподавателю":
         pass
@@ -259,8 +236,7 @@ def teacher_zero_parameters(chat_id, text):
         tch = jsonFormatter.search_subject(text)
         date = teacher_one_parameter(chat_id, text)
         if not tch == 'ERROR':
-            listRow[6] = text.upper()
-            dataBase.edit_row(listRow[0], listRow)
+            dataBase.set_name_teacher(chat_id, text.upper())
             return teacher_one_parameter(chat_id, '1')
         elif date != strings.MESSAGE_ERROR_DATE or text == strings.SEARCH_BY_TEACHER:
             return date
@@ -298,38 +274,33 @@ def teacher_zero_parameters(chat_id, text):
 
 def teacher_one_parameter(chat_id, text):
     #main.loggerDEBUG.debug('поиск по преподавателю (1)')
-    row = dataBase.get_row_by_id(chat_id)
-    listRow = row_to_list(row)
     if text == '1':
         date = datetime.datetime.today()
-        teacher = jsonFormatter.search_by_teacher_and_date(listRow[6], jsonFormatter.week_to_string(date.weekday()))
+        teacher = jsonFormatter.search_by_teacher_and_date(dataBase.get_teacher(chat_id), jsonFormatter.week_to_string(date.weekday()))
         return teacher
     elif text == '7':
-        teacher = jsonFormatter.search_by_teacher(listRow[6])
+        teacher = jsonFormatter.search_by_teacher(dataBase.get_teacher(chat_id))
         return teacher
     else:
         try:
             arrayData = data_to_array(text)
             date = datetime.datetime(int(arrayData[2]), int(arrayData[1]), int(arrayData[0]))
-            teacher = jsonFormatter.search_by_teacher_and_date(listRow[6], jsonFormatter.week_to_string(date.weekday()))
+            teacher = jsonFormatter.search_by_teacher_and_date(dataBase.get_teacher(chat_id), jsonFormatter.week_to_string(date.weekday()))
             return teacher
         except:
-            if listRow[5] == '':
+            if dataBase.get_group(chat_id) == '':
                 return strings.MESSAGE_ERROR_TEACHER
             return strings.MESSAGE_ERROR_DATE
 
 
 def all_time_table_one_parameters(message: Message):
     #main.loggerDEBUG.debug('вывод всего расписания (0)')
-    row = dataBase.get_row_by_id(message.from_user.id)
-    listRow = row_to_list(row)
     if message.text == 'все':
         s = jsonFormatter.print_all_time_table()
         return s
     elif message.text == 'выйти':
-        listRow[4] = 0
-        listRow[3] = -1
-        dataBase.edit_row(listRow[0], listRow)
+        dataBase.set_way(message.chat.id, -1)
+        dataBase.set_count_parameters(message.chat.id, 0)
     else:
         year = f'{(int(message.text[2:4]) % 100)}'
         strGroup = ''
@@ -383,12 +354,12 @@ def data_to_array(strData):
 
 def sendNotif(s):
     timing = time.time()
-    allRows = main.dataBase.get_all_rows()
+    allChatId = main.dataBase.get_all_chats()
     i = 0
     while True:
         if time.time() - timing > 0.05:
             timing = time.time()
-            chat_id = allRows[i][2]
+            chat_id = allChatId[i]
             try:
                 # db.close()
                 if s == '':
@@ -410,8 +381,6 @@ def row_to_list(row):
 
 
 def text_reg_exp(user_id):
-    row = dataBase.get_row_by_id(user_id)
-    listRow = row_to_list(row)
-    if listRow[5] == '':
+    if dataBase.get_group(user_id) == '':
         return 'ERROR'
-    return f'{strings.SEARCH_BY_GROUP_FOR_TODAY_1}"{listRow[5]}"'
+    return f'{strings.SEARCH_BY_GROUP_FOR_TODAY_1}"{dataBase.get_group(user_id)}"'
