@@ -34,9 +34,9 @@ MESSAGE_ERROR_TEACHER = "Такой преподаватель у нас не р
 MESSAGE_ERROR_ALL_TIME_TABLE = "Выберите снова."
 MESSAGE_ERROR_DATE = "Некорректный ввод даты.\nПовторите снова."
 MESSAGE_ERROR_TEXT = "Некорректный ввод."
-MESSAGE_SEND_NOTIFICATION_first = "Расписание на БК-536 изменилось!\n"
-MESSAGE_SEND_NOTIFICATION_second = '\n'.join(['Проверьте его здесь или на официальном сайте:',
-                                  'http://www.vega.fcyb.mirea.ru/'])
+NOTIFICATION_HEAD = "Расписание на БК-536 изменилось!\n"
+NOTIFICATION_TAIL = '\n'.join(['Проверьте его здесь или на официальном сайте:',
+                               'http://www.vega.fcyb.mirea.ru/'])
 MESSAGE_ONE_OF_LIST_COMMANDS = "Выберите один из пунктов меню:"
 
 INSTROUCTIONS_HELP = '\n'.join(["Дорогие друзья, надо помнить, "

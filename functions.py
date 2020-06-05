@@ -1,17 +1,11 @@
-import workWithJSON as wJSON
-import keyboard as kb
-import main
-from main import dataBase
-import strings
-import config
-
-import time
 import datetime
-import telebot
-from telebot.types import Message
+import keyboard as kb
+import strings
+import time
 
-bot = telebot.TeleBot(config.token)
-jsonFormatter = wJSON.JsonFormatter(wJSON.FileProvider("dataTest.json"))
+from telebot.apihelper import ApiException
+from telebot.types import Message
+from BotSetup import bot, dataBase, jsonFormatter, loggerDEBUG, States
 
 
 def general_func(message: Message):
@@ -20,7 +14,7 @@ def general_func(message: Message):
     countParam = dataBase.get_count_parameters(message.chat.id)
 
     # Работа с выводом информации--------------
-    if way == 10:
+    if way == States.CURRENT_GROUP_SEARCH:
         stringOut = current_group_zero_parameters(message.chat.id, message.text)
         if stringOut is not None and stringOut != '':
             bot.send_message(message.chat.id, stringOut, reply_markup=kb.determine_start_keyboard(dataBase.get_group(message.chat.id)))
@@ -30,7 +24,7 @@ def general_func(message: Message):
         bot.send_message(message.chat.id, strings.MESSAGE_ONE_OF_LIST_COMMANDS,
                          reply_markup=kb.determine_start_keyboard(dataBase.get_group(message.chat.id)))
 
-    elif way == 0:
+    elif way == States.GROUP_SEARCH:
         if countParam == 0:
             stringOut = group_zero_parameters(message.chat.id, message.text)
             if stringOut == strings.MESSAGE_ERROR_GROUP or stringOut == strings.MESSAGE_ERROR_DATE:
@@ -47,7 +41,7 @@ def general_func(message: Message):
             bot.send_message(message.chat.id, strings.MESSAGE_ONE_OF_LIST_COMMANDS,
                              reply_markup=kb.determine_start_keyboard(dataBase.get_group(message.chat.id)))
 
-    elif way == 1:
+    elif way == States.TEACHER_SEARCH:
         if countParam == 0:
             stringOut = teacher_zero_parameters(message.chat.id, message.text)
             if stringOut == strings.MESSAGE_ERROR_TEACHER or stringOut == strings.MESSAGE_ERROR_DATE:
@@ -63,7 +57,7 @@ def general_func(message: Message):
             bot.send_message(message.chat.id, strings.MESSAGE_ONE_OF_LIST_COMMANDS,
                              reply_markup=kb.determine_start_keyboard(dataBase.get_group(message.chat.id)))
 
-    elif way == 2:
+    elif way == States.FULL_TIMETABLE:
         if countParam == 0:
             bot.send_message(message.chat.id, strings.ENTER_COURSE_YEAR,
                              reply_markup=kb.choiceCourse)
@@ -88,7 +82,7 @@ def general_func(message: Message):
             bot.send_message(message.chat.id, strings.MESSAGE_ONE_OF_LIST_COMMANDS,
                              reply_markup=kb.determine_start_keyboard(dataBase.get_group(message.chat.id)))
 
-    elif way == 3:
+    elif way == States.BEST_ROOM:
         #main.loggerDEBUG.debug('когда свободна Б-209? (0)')
         if message.text == 'Сегодня':
             date = datetime.datetime.today()
@@ -354,23 +348,25 @@ def data_to_array(strData):
 
 def sendNotif(s):
     timing = time.time()
-    allChatId = main.dataBase.get_all_chats()
-    for i in range(0, len(allChatId)):
+    allChatId = dataBase.get_all_chats()
+    i = 0
+    admin_message = s + '\n' if s else s
+    total = 0
+    passed = 0
+    for chat_id in allChatId:  # TODO: for chat_id in dataBase.get_users_id() [сейчас это allRows?]
         if time.time() - timing > 0.05:
             timing = time.time()
-            chat_id = allChatId[i]
+            # chat_id = allChatId[i]
             try:
-                # db.close()
-                if s == '':
-                    bot.send_message(chat_id,
-                                     strings.MESSAGE_SEND_NOTIFICATION_first + strings.MESSAGE_SEND_NOTIFICATION_second)
-                    main.STRING_RETURN += f'{chat_id} уведомление отправлено\n'
-                else:
-                    bot.send_message(chat_id,
-                                     strings.MESSAGE_SEND_NOTIFICATION_first + s + "\n" + strings.MESSAGE_SEND_NOTIFICATION_second)
-            except:
-                # db.close()
-                main.loggerDEBUG.warning(f'----- в chat_id: {chat_id} уведомление отправлено не было')
+                bot.send_message(chat_id,
+                                 f'{strings.NOTIFICATION_HEAD}{admin_message}{strings.NOTIFICATION_TAIL}')
+                total += 1
+
+            except ApiException:
+                loggerDEBUG.warning(f'----- в chat_id: {chat_id} уведомление отправлено не было')
+                passed += 0
+            i += 1
+    return total, passed
 
 
 def row_to_list(row):
