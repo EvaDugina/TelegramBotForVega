@@ -29,13 +29,13 @@ class FileProvider(AbstractProvider):
 
     def search_group(self, g):  # -Работает
         gr = JsonFormatter.text_to_group(g)
-        if gr == 'ERROR':
-            return 'ERROR'
+        if gr is None:
+            return None
         group = gr.upper()
         for gr in self.data['groups']:
             if gr['group'] == group:
                 return json.dumps(gr['days'], indent=4, ensure_ascii=False)
-        return 'ERROR'
+        return None
 
     def search_subject(self, teacher):  # -Работает
         for pattern in self.data['patterns']:
@@ -43,7 +43,7 @@ class FileProvider(AbstractProvider):
                 arrayTeacher = pattern['pr'].upper().split(' ')
                 if arrayTeacher[0] == teacher.upper():
                     return pattern['search']
-        return 'ERROR'
+        return None
 
 
 ''' Этот класс будет преобразовывать куски JSON в текстовые данные '''
@@ -78,7 +78,7 @@ class JsonFormatter:
         elif len(text) == 8:
             gr = text[:4] + "-" + text[4:6] + "-" + text[6:]
         else:
-            return 'ERROR'
+            return None
         return gr
 
     def search_group(self, group):
@@ -112,7 +112,7 @@ class JsonFormatter:
 
     def search_by_teacher_and_date(self, teacher, dayWeek):  # -Работает
         subject = self.provider.search_subject(teacher)
-        if subject == 'ERROR':
+        if subject is None:
             return 'Такого учителя нет.'
         arrayPars = [False, False, False, False, False, False, False]
         strTimeTable = ['', '', '', '', '', '', '']
@@ -142,7 +142,7 @@ class JsonFormatter:
 
     def search_by_teacher(self, teacher):  # -Работает
         subject = self.provider.search_subject(teacher)
-        if subject == 'ERROR':
+        if subject is None:
             return 'Такого учителя нет.'
 
         arrayDays = ['ПН', 'ВТ', 'СР', 'ЧТ', 'ПТ', 'СБ', 'ВС']
@@ -164,7 +164,7 @@ class JsonFormatter:
                 timeTable += group['group'] + '\n\n'
                 timeTable += self.search_by_group(group['group']) + '\n\n'
         if timeTable == '':
-            return 'ERROR'
+            return None
         return timeTable
 
     def print_all_time_table(self):

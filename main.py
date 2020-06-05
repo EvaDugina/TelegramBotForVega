@@ -71,7 +71,9 @@ def choose_way_search_by_group(message: Message):
     dataBase.add_user(message.from_user.id, message.chat.id)
     dataBase.set_way(message.chat.id, 0)
     dataBase.set_count_parameters(message.chat.id, 0)
-    bot.send_message(message.chat.id, strings.ENTER_GROUP, reply_markup=kb.determine_start_keyboard(dataBase.get_group(message.from_user.id)))
+    bot.send_message(message.chat.id, 
+                     strings.ENTER_GROUP, 
+                     reply_markup=kb.determine_start_keyboard(dataBase.get_group(message.from_user.id)))
     loggerDEBUG.debug(f'{message.from_user.username} :: "ПОИСК ПО ГРУППЕ" :: end')
 
 
@@ -81,7 +83,9 @@ def choose_way_search_by_teacher(message: Message):
     dataBase.add_user(message.from_user.id, message.chat.id)
     dataBase.set_way(message.chat.id, 1)
     dataBase.set_count_parameters(message.chat.id, 0)
-    bot.send_message(message.chat.id, strings.ENTER_TEACHER, reply_markup=kb.determine_start_keyboard(dataBase.get_group(message.from_user.id)))
+    bot.send_message(message.chat.id, 
+                     strings.ENTER_TEACHER, 
+                     reply_markup=kb.determine_start_keyboard(dataBase.get_group(message.from_user.id)))
     loggerDEBUG.debug(f'{message.from_user.username} :: "ПОИСК ПО ПРЕПОДАВАТЕЛЮ" :: end')
 
 
@@ -101,7 +105,9 @@ def choose_way_by_b209(message: Message):
     dataBase.add_user(message.from_user.id, message.chat.id)
     dataBase.set_way(message.chat.id, 3)
     dataBase.set_count_parameters(message.chat.id, 0)
-    bot.send_message(message.chat.id, strings.ENTER_DATE_FOR_CURRENT_GROUP, reply_markup=kb.choiceDateForB209)
+    bot.send_message(message.chat.id, 
+                     strings.ENTER_DATE_FOR_CURRENT_GROUP, 
+                     reply_markup=kb.choiceDateForB209)
     loggerDEBUG.debug(f'{message.from_user.username} :: "КОГДА СВОБОДНА Б209?" :: end')
 
 
@@ -121,11 +127,7 @@ def repeat_message(message: Message):
     else:
         fnc.general_func(message)
 
-    try:
-        loggerDEBUG.debug(f'/text {message.from_user.username} - {message.from_user.id} - "{message.text}" :: end',
-                          encoding='utf-8')
-    except:
-        loggerDEBUG.debug(f'/text {message.from_user.username} - {message.from_user.id} - "некоорректный ввод" :: end')
+    loggerDEBUG.debug(f'/text {message.from_user.username} - {message.from_user.id} - "{message.text}" :: end')
 
 
 @bot.inline_handler(func=lambda query: len(query.query) > 0)
