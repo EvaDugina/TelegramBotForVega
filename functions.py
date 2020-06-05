@@ -346,14 +346,14 @@ def data_to_array(strData):
         return array
 
 
-def sendNotif(s):
+def send_notifications(s):
     timing = time.time()
     allChatId = dataBase.get_all_chats()
     i = 0
     admin_message = s + '\n' if s else s
     total = 0
     passed = 0
-    for chat_id in allChatId:  # TODO: for chat_id in dataBase.get_users_id() [сейчас это allRows?]
+    for chat_id in allChatId:
         if time.time() - timing > 0.05:
             timing = time.time()
             # chat_id = allChatId[i]

@@ -8,7 +8,6 @@ from telebot.types import Message
 from BotSetup import app, bot, dataBase, loggerDEBUG
 from BotSetup import Host, Port, NotificationMethod
 
-
 STRING_SERVER = f'{Host}:{Port}{NotificationMethod}'
 SERVER_GOOD_ANSWER = 'Notifications have been sent: total = {0}, passed = {1}'
 SERVER_BAD_ANSWER = 'Error!'
@@ -17,7 +16,7 @@ SERVER_BAD_ANSWER = 'Error!'
 @app.route(NotificationMethod, methods=['POST', 'GET'])
 def listen_update():
     try:
-        total, passed = fnc.sendNotif('')
+        total, passed = fnc.send_notifications('')
         loggerDEBUG.debug(f'/setnew from SERVER')
         return SERVER_GOOD_ANSWER.format(total, passed)
     except:
@@ -42,7 +41,7 @@ def time_table_changed(message: Message):
     user_info = message.from_user
     if dataBase.is_admin(message.from_user.id):
         option = message.text.strip('/setnew ')
-        fnc.sendNotif(option)
+        fnc.send_notifications(option)
         loggerDEBUG.debug(
             f'/setnew {user_info.username if user_info.username else ""} - {user_info.id} - {option}'
         )
@@ -71,8 +70,8 @@ def choose_way_search_by_group(message: Message):
     dataBase.add_user(message.from_user.id, message.chat.id)
     dataBase.set_way(message.chat.id, 0)
     dataBase.set_count_parameters(message.chat.id, 0)
-    bot.send_message(message.chat.id, 
-                     strings.ENTER_GROUP, 
+    bot.send_message(message.chat.id,
+                     strings.ENTER_GROUP,
                      reply_markup=kb.determine_start_keyboard(dataBase.get_group(message.from_user.id)))
     loggerDEBUG.debug(f'{message.from_user.username} :: "ПОИСК ПО ГРУППЕ" :: end')
 
@@ -83,8 +82,8 @@ def choose_way_search_by_teacher(message: Message):
     dataBase.add_user(message.from_user.id, message.chat.id)
     dataBase.set_way(message.chat.id, 1)
     dataBase.set_count_parameters(message.chat.id, 0)
-    bot.send_message(message.chat.id, 
-                     strings.ENTER_TEACHER, 
+    bot.send_message(message.chat.id,
+                     strings.ENTER_TEACHER,
                      reply_markup=kb.determine_start_keyboard(dataBase.get_group(message.from_user.id)))
     loggerDEBUG.debug(f'{message.from_user.username} :: "ПОИСК ПО ПРЕПОДАВАТЕЛЮ" :: end')
 
@@ -105,8 +104,8 @@ def choose_way_by_b209(message: Message):
     dataBase.add_user(message.from_user.id, message.chat.id)
     dataBase.set_way(message.chat.id, 3)
     dataBase.set_count_parameters(message.chat.id, 0)
-    bot.send_message(message.chat.id, 
-                     strings.ENTER_DATE_FOR_CURRENT_GROUP, 
+    bot.send_message(message.chat.id,
+                     strings.ENTER_DATE_FOR_CURRENT_GROUP,
                      reply_markup=kb.choiceDateForB209)
     loggerDEBUG.debug(f'{message.from_user.username} :: "КОГДА СВОБОДНА Б209?" :: end')
 
@@ -116,7 +115,7 @@ def repeat_message(message: Message):
     loggerDEBUG.debug(f'/text {message.from_user.username} :: start')
     dataBase.add_user(message.from_user.id, message.chat.id)
 
-    #fnc.general_func(message)
+    # fnc.general_func(message)
 
     regExp = fnc.text_reg_exp(message.from_user.id)
 

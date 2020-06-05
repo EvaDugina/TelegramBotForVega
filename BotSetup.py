@@ -32,9 +32,9 @@ logging.getLogger('requests').setLevel('ERROR')
 
 logging.basicConfig(level='DEBUG', filename='log.txt', format=LOG_FORMAT)
 
-dataBase = wDB.DBWorker(wDB.FileDBWork("USERS_DATA_BASE.db", "ADMINS_DATA_BASE.db"))
+dataBase = wDB.DBWorker("USERS_DATA_BASE.db", "ADMINS_DATA_BASE.db")
 
-jsonFormatter = JsonFormatter(FileProvider("dataTest.json"))  # TODO: name to config
+jsonFormatter = JsonFormatter(FileProvider(config.dateFileJSON))
 
 app = Flask(__name__)
 
