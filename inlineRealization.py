@@ -105,6 +105,7 @@ def len_three(arrayCommands):
             arrayGroupsOut = func_for(arrayGroupsIn)
         return arrayGroupsOut
 
+
 def len_four(arrayCommands):
     if len(arrayCommands[0]) == 4:
         arrayGroupsOut = []

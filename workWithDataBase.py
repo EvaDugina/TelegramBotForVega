@@ -33,9 +33,6 @@ class AbstractDBWork:
     def get_all_chats(self):
         pass
 
-    def get_all_chats(self):
-        pass
-
     def get_user_id(self, user_id):
         pass
 
@@ -62,7 +59,7 @@ class DBWorker(AbstractDBWork):
     CONNECTION_USERS_DB = None
     CONNECTION_ADMINS_DB = None
 
-    def __init__(self, usersDataBaseName, adminsDataBaseName, force: bool=False):
+    def __init__(self, usersDataBaseName, adminsDataBaseName, force: bool = False):
         if self.CONNECTION_USERS_DB is None:
             self.CONNECTION_USERS_DB = sqlite3.connect(usersDataBaseName, check_same_thread=False)
         if self.CONNECTION_ADMINS_DB is None:
@@ -82,7 +79,7 @@ class DBWorker(AbstractDBWork):
                             name_teacher  TEXT NOT NULL DEFAULT '')
                         """)
         users_connection.commit()
-        #c.close()
+        # c.close()
 
         admins_connection = self.CONNECTION_ADMINS_DB
         c = admins_connection.cursor()
@@ -94,7 +91,7 @@ class DBWorker(AbstractDBWork):
                             chat_id     INTEGER NOT NULL UNIQUE)
                             """)
         admins_connection.commit()
-        #c.close()
+        # c.close()
 
     def __edit_row(self, index, row):
         connection = self.CONNECTION_USERS_DB
@@ -103,7 +100,7 @@ class DBWorker(AbstractDBWork):
                       SET way = ?, count_par = ?, name_group = ?, name_teacher = ?
                       WHERE chat_id=?""", (row[3], row[4], row[5], row[6], index))
         connection.commit()
-        #db.close()
+        # db.close()
 
     def __get_row_by_id(self, user_id):
         connection = self.CONNECTION_USERS_DB
@@ -115,11 +112,11 @@ class DBWorker(AbstractDBWork):
                 break
             u_id = row[1]
             if user_id == u_id:
-                #db.close()
+                # db.close()
                 connection.commit()
                 return row
         connection.commit()
-        #db.close()
+        # db.close()
         return None
 
     def add_user(self, user_id: int, chat_id: int):
@@ -128,10 +125,10 @@ class DBWorker(AbstractDBWork):
         try:
             c.execute('INSERT INTO all_users (user_id, chat_id) VALUES (?, ?)', (user_id, chat_id,))
             connection.commit()
-            #c.close()
+            # c.close()
         except:
             connection.commit()
-            #c.close()
+            # c.close()
 
     def set_default_values(self, chat_id):
         row = self.__get_row_by_id(chat_id)
@@ -192,7 +189,7 @@ class DBWorker(AbstractDBWork):
         allRows = []
         while True:
             newRow = db.fetchone()
-            if newRow == None:
+            if newRow is None:
                 break
             allRows.append(newRow[2])
         return allRows
@@ -215,14 +212,13 @@ class DBWorker(AbstractDBWork):
     def get_teacher(self, user_id):
         return self.__get_row_by_id(user_id)[6]
 
-
     def is_admin(self, id):
         connection = self.CONNECTION_ADMINS_DB
         db = connection.cursor()
         db.execute("SELECT * FROM admins")
         while True:
             row = db.fetchone()
-            if row == None:
+            if row is None:
                 break
 
             user_id = row[1]

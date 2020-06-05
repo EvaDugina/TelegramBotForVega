@@ -1,9 +1,9 @@
 import config
-import functions as fnc
 import strings
 import keyboard as kb
 import inlineRealization as iRz
 import workWithDataBase as wDB
+import functions as fnc
 
 from flask import Flask
 import threading
