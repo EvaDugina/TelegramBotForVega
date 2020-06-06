@@ -145,14 +145,14 @@ class DBWorker(AbstractDBWork):
     def set_default_values(self, chat_id):
         row = self.__get_row_by_id(chat_id)
         listRow = fnc.row_to_list(row)
-        listRow[3] = States[0]
+        listRow[3] = States.MAIN
         listRow[4] = 0
         listRow[5] = ''
         listRow[6] = ''
         self.__edit_row(chat_id, listRow)
 
     def set_default_way(self, chat_id):
-        self.set_way(chat_id, States[0])
+        self.set_way(chat_id, States.MAIN)
 
     def set_user_id(self, chat_id, user_id):
         connection = self.CONNECTION_USERS_DB
