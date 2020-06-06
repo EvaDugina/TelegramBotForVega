@@ -5,7 +5,8 @@ import time
 
 from telebot.apihelper import ApiException
 from telebot.types import Message
-from BotSetup import bot, dataBase, jsonFormatter, loggerDEBUG, States
+from BotSetup import bot, dataBase, jsonFormatter, loggerDEBUG
+from BotStates import States
 
 
 def general_func(message: Message):
@@ -20,7 +21,7 @@ def general_func(message: Message):
             bot.send_message(message.chat.id, stringOut, reply_markup=kb.determine_start_keyboard(dataBase.get_group(message.chat.id)))
         else:
             bot.send_message(message.chat.id, strings.MESSAGE_ERROR_TEXT, reply_markup=kb.determine_start_keyboard(dataBase.get_group(message.chat.id)))
-        dataBase.set_way(message.chat.id, -1)
+        dataBase.set_way(message.chat.id, States.MAIN)
         bot.send_message(message.chat.id, strings.MESSAGE_ONE_OF_LIST_COMMANDS,
                          reply_markup=kb.determine_start_keyboard(dataBase.get_group(message.chat.id)))
 
@@ -37,7 +38,7 @@ def general_func(message: Message):
                     bot.send_message(message.chat.id,
                                      strings.MESSAGE_ONLY_DATE_GROUP + f'\nТЕКУЩАЯ ГРУППА: {dataBase.get_group(message.chat.id)}',
                                      reply_markup=kb.determine_start_keyboard(dataBase.get_group(message.chat.id)))
-            dataBase.set_way(message.chat.id, -1)
+            dataBase.set_way(message.chat.id, States.MAIN)
             bot.send_message(message.chat.id, strings.MESSAGE_ONE_OF_LIST_COMMANDS,
                              reply_markup=kb.determine_start_keyboard(dataBase.get_group(message.chat.id)))
 
@@ -53,7 +54,7 @@ def general_func(message: Message):
                 if dataBase.get_teacher(message.chat.id) != '':
                     bot.send_message(message.chat.id,
                                      strings.MESSAGE_ONLY_DATE_TEACHER + f'\nТЕКУЩИЙ ПРЕПОДАВАТЕЛЬ: {dataBase.get_teacher(message.chat.id)}')
-            dataBase.set_way(message.chat.id, -1)
+            dataBase.set_way(message.chat.id, States.MAIN)
             bot.send_message(message.chat.id, strings.MESSAGE_ONE_OF_LIST_COMMANDS,
                              reply_markup=kb.determine_start_keyboard(dataBase.get_group(message.chat.id)))
 
@@ -78,7 +79,7 @@ def general_func(message: Message):
             else:
                 #main.loggerDEBUG.debug('вывод всего расписания (null)')
                 bot.send_message(message.chat.id, strings.MESSAGE_ERROR_ALL_TIME_TABLE)
-            dataBase.set_way(message.chat.id, -1)
+            dataBase.set_way(message.chat.id, States.MAIN)
             bot.send_message(message.chat.id, strings.MESSAGE_ONE_OF_LIST_COMMANDS,
                              reply_markup=kb.determine_start_keyboard(dataBase.get_group(message.chat.id)))
 
@@ -99,7 +100,7 @@ def general_func(message: Message):
             except:
                 bot.send_message(message.chat.id, strings.MESSAGE_ERROR_DATE)
 
-        dataBase.set_way(message.chat.id, -1)
+        dataBase.set_way(message.chat.id, States.MAIN)
         bot.send_message(message.chat.id, strings.MESSAGE_ONE_OF_LIST_COMMANDS,
                          reply_markup=kb.determine_start_keyboard(dataBase.get_group(message.chat.id)))
 
@@ -293,7 +294,7 @@ def all_time_table_one_parameters(message: Message):
         s = jsonFormatter.print_all_time_table()
         return s
     elif message.text == 'выйти':
-        dataBase.set_way(message.chat.id, -1)
+        dataBase.set_way(message.chat.id, States.MAIN)
         dataBase.set_count_parameters(message.chat.id, 0)
     else:
         year = f'{(int(message.text[2:4]) % 100)}'
@@ -378,3 +379,19 @@ def text_reg_exp(user_id):
     if dataBase.get_group(user_id) == '':
         return None
     return f'{strings.SEARCH_BY_GROUP_FOR_TODAY_1}"{dataBase.get_group(user_id)}"'
+
+
+def way_state_to_int(way):
+    if way == States.MAIN:
+        return -1
+    elif way == States.GROUP_SEARCH:
+        return 0
+    elif way == States.TEACHER_SEARCH:
+        return 1
+    elif way == States.FULL_TIMETABLE:
+        return 2
+    elif way == States.BEST_ROOM:
+        return 3
+    elif way == States.CURRENT_GROUP_SEARCH:
+        return 10
+    return -2

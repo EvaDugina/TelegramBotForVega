@@ -5,12 +5,16 @@ import inlineRealization as iRz
 
 import threading
 from telebot.types import Message
-from BotSetup import app, bot, dataBase, loggerDEBUG
+from flask import Flask
+from BotSetup import bot, dataBase, loggerDEBUG
 from BotSetup import Host, Port, NotificationMethod
+from BotStates import States
 
 STRING_SERVER = f'{Host}:{Port}{NotificationMethod}'
 SERVER_GOOD_ANSWER = 'Notifications have been sent: total = {0}, passed = {1}'
 SERVER_BAD_ANSWER = 'Error!'
+
+app = Flask(__name__)
 
 
 @app.route(NotificationMethod, methods=['POST', 'GET'])
@@ -68,7 +72,7 @@ def send_list_of_commands(message: Message):
 def choose_way_search_by_group(message: Message):
     loggerDEBUG.debug(f'{message.from_user.username} :: "ПОИСК ПО ГРУППЕ" :: start')
     dataBase.add_user(message.from_user.id, message.chat.id)
-    dataBase.set_way(message.chat.id, 0)
+    dataBase.set_way(message.chat.id, States.GROUP_SEARCH)
     dataBase.set_count_parameters(message.chat.id, 0)
     bot.send_message(message.chat.id,
                      strings.ENTER_GROUP,
@@ -80,7 +84,7 @@ def choose_way_search_by_group(message: Message):
 def choose_way_search_by_teacher(message: Message):
     loggerDEBUG.debug(f'{message.from_user.username} :: "ПОИСК ПО ПРЕПОДАВАТЕЛЮ" :: start')
     dataBase.add_user(message.from_user.id, message.chat.id)
-    dataBase.set_way(message.chat.id, 1)
+    dataBase.set_way(message.chat.id, States.TEACHER_SEARCH)
     dataBase.set_count_parameters(message.chat.id, 0)
     bot.send_message(message.chat.id,
                      strings.ENTER_TEACHER,
@@ -92,7 +96,7 @@ def choose_way_search_by_teacher(message: Message):
 def choose_way_all_time_table(message: Message):
     loggerDEBUG.debug(f'{message.from_user.username} :: "ВЫВОД ВСЕГО РАСПИСАНИЯ" :: start')
     dataBase.add_user(message.from_user.id, message.chat.id)
-    dataBase.set_way(message.chat.id, 2)
+    dataBase.set_way(message.chat.id, States.FULL_TIMETABLE)
     dataBase.set_count_parameters(message.chat.id, 0)
     fnc.general_func(message)
     loggerDEBUG.debug(f'{message.from_user.username} :: "ВЫВОД ВСЕГО РАСПИСАНИЯ" :: end')
@@ -102,7 +106,7 @@ def choose_way_all_time_table(message: Message):
 def choose_way_by_b209(message: Message):
     loggerDEBUG.debug(f'{message.from_user.username} :: "КОГДА СВОБОДНА Б209?" :: start')
     dataBase.add_user(message.from_user.id, message.chat.id)
-    dataBase.set_way(message.chat.id, 3)
+    dataBase.set_way(message.chat.id, States.BEST_ROOM)
     dataBase.set_count_parameters(message.chat.id, 0)
     bot.send_message(message.chat.id,
                      strings.ENTER_DATE_FOR_CURRENT_GROUP,
@@ -122,7 +126,7 @@ def repeat_message(message: Message):
     if regExp and message.text == regExp:
         bot.send_message(message.chat.id, strings.ENTER_DATE_FOR_CURRENT_GROUP,
                          reply_markup=kb.choiceDateForCurrentGroup)
-        dataBase.set_way(message.chat.id, 10)
+        dataBase.set_way(message.chat.id, States.CURRENT_GROUP_SEARCH)
     else:
         fnc.general_func(message)
 

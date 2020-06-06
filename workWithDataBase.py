@@ -1,5 +1,6 @@
 import sqlite3
 import functions as fnc
+from BotStates import States
 
 ''' Тут нужно обернуть все в класс BDWorker '''
 
@@ -94,6 +95,7 @@ class DBWorker(AbstractDBWork):
         # c.close()
 
     def __edit_row(self, index, row):
+        row[3] = fnc.way_state_to_int(row[3])
         connection = self.CONNECTION_USERS_DB
         db = connection.cursor()
         db.execute("""UPDATE all_users 
@@ -119,6 +121,16 @@ class DBWorker(AbstractDBWork):
         # db.close()
         return None
 
+    def add_admin(self, user_id):
+        connection = self.CONNECTION_ADMINS_DB
+        db = connection.cursor()
+        try:
+            db.execute('INSERT INTO admins (user_id, chat_id) VALUES (?, ?)', (user_id, user_id,))
+            connection.commit()
+            # c.close()
+        except:
+            connection.commit()
+
     def add_user(self, user_id: int, chat_id: int):
         connection = self.CONNECTION_USERS_DB
         c = connection.cursor()
@@ -133,14 +145,14 @@ class DBWorker(AbstractDBWork):
     def set_default_values(self, chat_id):
         row = self.__get_row_by_id(chat_id)
         listRow = fnc.row_to_list(row)
-        listRow[3] = -1
+        listRow[3] = States[0]
         listRow[4] = 0
         listRow[5] = ''
         listRow[6] = ''
         self.__edit_row(chat_id, listRow)
 
     def set_default_way(self, chat_id):
-        self.set_way(chat_id, -1)
+        self.set_way(chat_id, States[0])
 
     def set_user_id(self, chat_id, user_id):
         connection = self.CONNECTION_USERS_DB
@@ -151,12 +163,14 @@ class DBWorker(AbstractDBWork):
         connection.commit()
 
     def set_way(self, chat_id, way):
-        connection = self.CONNECTION_USERS_DB
-        db = connection.cursor()
-        db.execute("""UPDATE all_users 
-                                      SET way = ?
-                                      WHERE chat_id=?""", (way, chat_id))
-        connection.commit()
+        way = fnc.way_state_to_int(way)
+        if way != -2:
+            connection = self.CONNECTION_USERS_DB
+            db = connection.cursor()
+            db.execute("""UPDATE all_users 
+                                          SET way = ?
+                                          WHERE chat_id=?""", (way, chat_id))
+            connection.commit()
 
     def set_count_parameters(self, chat_id, count_parameters):
         connection = self.CONNECTION_USERS_DB
@@ -201,7 +215,7 @@ class DBWorker(AbstractDBWork):
         return self.__get_row_by_id(user_id)[2]
 
     def get_way(self, user_id):
-        return self.__get_row_by_id(user_id)[3]
+        return States(self.__get_row_by_id(user_id)[3])
 
     def get_count_parameters(self, user_id):
         return self.__get_row_by_id(user_id)[4]
